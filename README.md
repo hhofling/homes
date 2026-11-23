@@ -13,6 +13,19 @@ Ett webbaserat ritprogram för att rita planritningar (blueprints) och prova oli
 - **Spara, öppna, exportera** – sparas automatiskt i webbläsaren. Exportera som PNG, SVG (skala 1:100 i mm) eller planfil (.json), och skriv ut.
 - Rutnät med fäst-funktion, zoom/panorering, ångra/gör om och en sammanställning av alla rumsareor.
 
+## Byggplaneraren
+
+En andra sida (`byggprojekt.html`) för att planera renoveringar och byggen:
+
+- **Moment** grupperade i faser (rivning, el, VVS, tätskikt, ytskikt …) med vem som gör jobbet, yrke, timmar, personer och arbetskostnad.
+- **Mallar** – måla om rum, nytt golv, renovera badrum, byta kök, bygga innervägg. Mängder räknas ut från rummets mått.
+- **Material** med mängd, enhet, spill, pris, kategori, butik och vem som köper. Export för Excel (CSV).
+- **Rum & ytor** – skriv in eller hämta rum från Planritaren (från samma webbläsare eller från en sparad planfil).
+- **Tidsplan** på vardagar utifrån startdatum, **översikt** med total kostnad och ROT-avdrag.
+- **Offertförfrågningar** per yrke, **inköpslistor** per butik/kategori och **checklistor** – kopiera, ladda ner eller skriv ut.
+
+Allt sparas i webbläsaren; projekt kan sparas och öppnas som fil (`.bygg.json`).
+
 ## Kom igång
 
 ```bash
@@ -20,6 +33,7 @@ npm install
 npm run dev      # startar på http://localhost:5173
 npm test         # enhetstester
 npm run build    # statisk build i dist/ (kan läggas på valfri webbhost)
+npm run build:artefakt  # varje verktyg som en enda fristående HTML-fil i artefakt/
 ```
 
 ## Kortkommandon
@@ -39,6 +53,9 @@ npm run build    # statisk build i dist/ (kan läggas på valfri webbhost)
 | Enter / Esc / dubbelklick | Avsluta vägg eller rum |
 
 ## Struktur
+
+- `src/projekt/` – Byggplaneraren (beräkningar i `calc.ts`, mallar i `templates.ts`, gränssnitt i `ui.ts`)
+- `src/common.ts` – nedladdning och länkar som delas av båda verktygen
 
 - `src/editor.ts` – ritytan: verktyg, snäppning, träfftest, dra och släpp
 - `src/render.ts` – ritar planen som SVG (används både på skärmen och vid export)

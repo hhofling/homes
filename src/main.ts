@@ -3,6 +3,7 @@ import { Store } from './store';
 import { Editor } from './editor';
 import { setupUI } from './ui';
 import { downloadJSON, downloadPNG, downloadSVG, planToSVG, inArtifact } from './export';
+import { ARTIFACT_LINKS } from './common';
 
 const store = new Store();
 const svg = document.querySelector<SVGSVGElement>('#canvas')!;
@@ -48,6 +49,16 @@ document.querySelector('#btn-print')!.addEventListener('click', () => {
   area.innerHTML = planToSVG(store.plan, editor.settings).svg;
   window.print();
 });
+
+// Länk till Byggplaneraren (som artefakt öppnas den i en ny flik)
+const byggLink = document.querySelector<HTMLAnchorElement>('#link-bygg')!;
+if (inArtifact()) {
+  if (ARTIFACT_LINKS.byggplaneraren) {
+    byggLink.href = ARTIFACT_LINKS.byggplaneraren;
+    byggLink.target = '_blank';
+    byggLink.rel = 'noopener';
+  } else byggLink.hidden = true;
+}
 
 // Spara innan sidan stängs
 window.addEventListener('beforeunload', () => store.save());

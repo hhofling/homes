@@ -1,5 +1,8 @@
 import type { Plan } from './types';
 import { renderPlan, planBounds, esc, PAPER, type RenderOptions } from './render';
+import { download, safeFilename } from './common';
+
+export { inArtifact, safeFilename } from './common';
 
 const MARGIN = 800;
 
@@ -17,35 +20,6 @@ export function planToSVG(plan: Plan, opts: RenderOptions): { svg: string; width
     `<text x="${x + 300}" y="${y + height - 300}" font-size="200" fill="#5b6b7c" font-family="system-ui, sans-serif">${esc(plan.name)} · ${new Date().toLocaleDateString('sv-SE')}</text>` +
     `</svg>`;
   return { svg, width, height };
-}
-
-/** Körs sidan inuti en Claude-artefakt? Där sparas filer via plattformens nedladdningsfunktion. */
-export const inArtifact = () => typeof (window as any).claude?.use === 'function';
-
-async function download(blob: Blob, filename: string) {
-  if (inArtifact()) {
-    const downloads = await (window as any).claude.use('downloads');
-    if (!downloads) throw new Error('Nedladdning är inte tillgänglig här');
-    try {
-      await downloads.save({ filename, data: blob });
-    } catch (err: any) {
-      if (err?.code === 'declined') return;
-      throw new Error(err?.message || 'Nedladdningen misslyckades');
-    }
-    return;
-  }
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
-}
-
-export function safeFilename(name: string) {
-  return (name.trim() || 'plan').replace(/[^\p{L}\p{N}\- _]+/gu, '').replace(/\s+/g, '-').slice(0, 60) || 'plan';
 }
 
 export async function downloadSVG(plan: Plan, opts: RenderOptions) {
