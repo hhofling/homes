@@ -2,7 +2,7 @@ import './style.css';
 import { Store } from './store';
 import { Editor } from './editor';
 import { setupUI } from './ui';
-import { downloadJSON, downloadPNG, downloadSVG, planToSVG } from './export';
+import { downloadJSON, downloadPNG, downloadSVG, planToSVG, inArtifact } from './export';
 
 const store = new Store();
 const svg = document.querySelector<SVGSVGElement>('#canvas')!;
@@ -15,11 +15,11 @@ document.querySelector('#zoom-in')!.addEventListener('click', () => editor.zoomA
 document.querySelector('#zoom-out')!.addEventListener('click', () => editor.zoomAt(0.8));
 document.querySelector('#zoom-fit')!.addEventListener('click', () => editor.fitView());
 
-document.querySelector('#btn-png')!.addEventListener('click', () => {
-  downloadPNG(store.plan, editor.settings).catch((err) => alert(`Exporten misslyckades: ${err.message}`));
-});
-document.querySelector('#btn-svg')!.addEventListener('click', () => downloadSVG(store.plan, editor.settings));
-document.querySelector('#btn-save')!.addEventListener('click', () => downloadJSON(store.plan));
+const notify = (msg: string) => editor.onStatus({ hint: msg });
+const run = (p: Promise<void>, what: string) => p.catch((err) => notify(`${what} misslyckades: ${err.message}`));
+document.querySelector('#btn-png')!.addEventListener('click', () => run(downloadPNG(store.plan, editor.settings), 'Exporten'));
+document.querySelector('#btn-svg')!.addEventListener('click', () => run(downloadSVG(store.plan, editor.settings), 'Exporten'));
+document.querySelector('#btn-save')!.addEventListener('click', () => run(downloadJSON(store.plan), 'Sparandet'));
 
 const fileInput = document.querySelector<HTMLInputElement>('#file-input')!;
 document.querySelector('#btn-open')!.addEventListener('click', () => fileInput.click());
@@ -32,10 +32,12 @@ fileInput.addEventListener('change', async () => {
     editor.select(null);
     editor.fitView();
   } catch (err) {
-    alert(`Kunde inte öppna filen: ${(err as Error).message}`);
+    notify(`Kunde inte öppna filen: ${(err as Error).message}`);
   }
 });
 
+// Utskrift fungerar inte inuti en artefakt
+if (inArtifact()) (document.querySelector('#btn-print') as HTMLElement).hidden = true;
 document.querySelector('#btn-print')!.addEventListener('click', () => {
   let area = document.querySelector<HTMLDivElement>('#print-area');
   if (!area) {

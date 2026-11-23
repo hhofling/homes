@@ -149,8 +149,16 @@ export function setupUI(editor: Editor, store: Store) {
     const t = e.target as HTMLElement;
     const del = t.closest('[data-del]') as HTMLElement | null;
     if (del) {
+      // Två klick krävs: första klicket ber om bekräftelse
       const p = store.plans.find((x) => x.id === del.dataset.del);
-      if (p && confirm(`Ta bort "${p.name}"? Det går inte att ångra.`)) store.deletePlan(p.id);
+      if (!p) return;
+      if (del.classList.contains('confirm')) store.deletePlan(p.id);
+      else {
+        del.classList.add('confirm');
+        del.textContent = 'Ta bort?';
+        del.title = 'Klicka igen för att ta bort planen. Det går inte att ångra.';
+        setTimeout(() => renderPlans(), 3000);
+      }
       return;
     }
     const open = t.closest('.plan-open') as HTMLElement | null;

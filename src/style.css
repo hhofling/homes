@@ -11,10 +11,44 @@
   --paper: #ffffff;
   --grid-minor: #eef1f5;
   --grid-major: #d9dee6;
+  --control: #ffffff;
+  --control-hover: #f6f8fb;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 14px;
   color: var(--text);
   color-scheme: light;
+}
+
+/* Ritytan är alltid vitt papper; övriga paneler följer ljust/mörkt tema. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+  --bg: #12161c;
+  --panel: #1a2029;
+  --border: #2d3642;
+  --text: #e4e9ef;
+  --muted: #98a4b1;
+  --accent: #7fb0f0;
+  --accent-soft: #1e2d42;
+  --danger: #f2877d;
+  --sel: #4c93ec;
+  --control: #222a35;
+  --control-hover: #2a3340;
+  color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --bg: #12161c;
+  --panel: #1a2029;
+  --border: #2d3642;
+  --text: #e4e9ef;
+  --muted: #98a4b1;
+  --accent: #7fb0f0;
+  --accent-soft: #1e2d42;
+  --danger: #f2877d;
+  --sel: #4c93ec;
+  --control: #222a35;
+  --control-hover: #2a3340;
+  color-scheme: dark;
 }
 
 * {
@@ -26,6 +60,7 @@ body {
   margin: 0;
   height: 100%;
   background: var(--bg);
+  color: var(--text);
   overflow: hidden;
 }
 
@@ -38,7 +73,7 @@ select {
 
 button {
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--control);
   border-radius: 7px;
   padding: 6px 10px;
   cursor: pointer;
@@ -46,16 +81,16 @@ button {
 }
 button:hover:not(:disabled) {
   border-color: #b8c2ce;
-  background: #f8fafc;
+  background: var(--control-hover);
 }
 button:disabled {
   opacity: 0.45;
   cursor: default;
 }
 button.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+  background: #1d4f91;
+  border-color: #1d4f91;
+  color: #ffffff;
 }
 button.primary:hover:not(:disabled) {
   background: #173f75;
@@ -77,7 +112,7 @@ select {
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 5px 8px;
-  background: #fff;
+  background: var(--control);
   min-width: 0;
 }
 
@@ -199,7 +234,7 @@ h3 {
   gap: 3px;
   padding: 7px 4px;
   font-size: 11.5px;
-  color: #3b4652;
+  color: var(--text);
 }
 .tool.active,
 .lib-item.active {
@@ -394,6 +429,11 @@ h3 {
 .plan-open:hover:not(:disabled) {
   background: transparent;
 }
+.icon-btn.confirm {
+  color: #fff;
+  background: var(--danger);
+  font-size: 12px;
+}
 .icon-btn {
   border: 0;
   background: transparent;
@@ -423,7 +463,7 @@ h3 {
   padding: 0;
   border: 1px solid var(--border);
   border-radius: 5px;
-  background: #fff;
+  background: var(--control);
 }
 .swatches {
   display: flex;
@@ -450,7 +490,7 @@ kbd {
   border-bottom-width: 2px;
   border-radius: 4px;
   padding: 0 4px;
-  background: #fafbfc;
+  background: var(--control-hover);
 }
 
 /* ----- Sammanställning ----- */
@@ -529,7 +569,7 @@ kbd {
   html,
   body {
     overflow: visible;
-    background: #fff;
+    background: var(--control);
   }
   #print-area {
     display: block;

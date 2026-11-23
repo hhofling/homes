@@ -19,7 +19,21 @@ export function planToSVG(plan: Plan, opts: RenderOptions): { svg: string; width
   return { svg, width, height };
 }
 
-function download(blob: Blob, filename: string) {
+/** Körs sidan inuti en Claude-artefakt? Där sparas filer via plattformens nedladdningsfunktion. */
+export const inArtifact = () => typeof (window as any).claude?.use === 'function';
+
+async function download(blob: Blob, filename: string) {
+  if (inArtifact()) {
+    const downloads = await (window as any).claude.use('downloads');
+    if (!downloads) throw new Error('Nedladdning är inte tillgänglig här');
+    try {
+      await downloads.save({ filename, data: blob });
+    } catch (err: any) {
+      if (err?.code === 'declined') return;
+      throw new Error(err?.message || 'Nedladdningen misslyckades');
+    }
+    return;
+  }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -34,13 +48,13 @@ export function safeFilename(name: string) {
   return (name.trim() || 'plan').replace(/[^\p{L}\p{N}\- _]+/gu, '').replace(/\s+/g, '-').slice(0, 60) || 'plan';
 }
 
-export function downloadSVG(plan: Plan, opts: RenderOptions) {
+export async function downloadSVG(plan: Plan, opts: RenderOptions) {
   const { svg } = planToSVG(plan, opts);
-  download(new Blob([svg], { type: 'image/svg+xml' }), `${safeFilename(plan.name)}.svg`);
+  await download(new Blob([svg], { type: 'image/svg+xml' }), `${safeFilename(plan.name)}.svg`);
 }
 
-export function downloadJSON(plan: Plan) {
-  download(new Blob([JSON.stringify(plan, null, 2)], { type: 'application/json' }), `${safeFilename(plan.name)}.plan.json`);
+export async function downloadJSON(plan: Plan) {
+  await download(new Blob([JSON.stringify(plan, null, 2)], { type: 'application/json' }), `${safeFilename(plan.name)}.plan.json`);
 }
 
 export async function downloadPNG(plan: Plan, opts: RenderOptions) {
@@ -65,5 +79,5 @@ export async function downloadPNG(plan: Plan, opts: RenderOptions) {
   ctx.drawImage(img, 0, 0, pw, ph);
   URL.revokeObjectURL(url);
   const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/png'));
-  if (blob) download(blob, `${safeFilename(plan.name)}.png`);
+  if (blob) await download(blob, `${safeFilename(plan.name)}.png`);
 }
