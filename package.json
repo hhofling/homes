@@ -1,0 +1,19 @@
+{
+  "name": "homes",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Planritaren – ett webbaserat ritprogram för planritningar och inredningslösningar för hem.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^6.0.7",
+    "vitest": "^3.0.5"
+  }
+}
