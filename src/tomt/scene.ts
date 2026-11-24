@@ -347,7 +347,8 @@ function planWalls(b: Building, plan: Plan, H: number, wallMat: THREE.Material, 
     // Väggarna i planen gäller bottenvåningen; övre våningar blir hela ytterväggar
     const wallH = outer ? (opts.roofs ? H : floorH) : Math.min(floorH, H);
     if (outer && opts.roofs && b.floors > 1) {
-      for (let f = 1; f < b.floors; f++) for (const h of holes) if (h.kind === 'window') holes.push({ ...h, bottom: h.bottom + f * floorH, top: h.top + f * floorH });
+      const base = holes.filter((h) => h.kind === 'window');
+      for (let f = 1; f < b.floors; f++) for (const h of base) holes.push({ ...h, bottom: h.bottom + f * floorH, top: h.top + f * floorH });
     }
     // Innerväggar lite lägre när taket är dolt, så att det syns att de är innerväggar
     g.add(wallWithHoles(loc(wall.a), loc(wall.b), wall.thickness * M, outer ? wallH : Math.min(wallH, opts.roofs ? floorH : floorH - 0.2), holes, outer ? wallMat : mat('#f3f1ec'), outer));

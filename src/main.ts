@@ -5,6 +5,7 @@ import { setupUI } from './ui';
 import { downloadJSON, downloadPNG, downloadSVG, planToSVG, inArtifact } from './export';
 import { ARTIFACT_LINKS, receiveHandoff } from './common';
 import { normalizePlan } from './store';
+import { EXAMPLE_ID, examplePlans } from './exempel/hogbovagen333';
 
 const store = new Store();
 const svg = document.querySelector<SVGSVGElement>('#canvas')!;
@@ -81,6 +82,24 @@ receiveHandoff('planritaren', (raw) => {
   requestAnimationFrame(() => editor.fitView());
   notify(`Öppnade "${store.plan.name}" från Tomtplaneraren. Ändringar här syns i 3D-vyn.`);
 });
+
+// Exempel: lägg till (eller visa) färdigritade planer
+function openExample(id: string) {
+  if (id !== EXAMPLE_ID) return;
+  const plans = examplePlans();
+  for (const p of plans) if (!store.plans.some((x) => x.id === p.id)) store.plans.push(p);
+  store.switchTo(plans[0].id);
+  editor.select(null);
+  requestAnimationFrame(() => editor.fitView());
+  notify('Öppnade Högbovägen 333 (bottenvåning och övervåning finns i listan till höger). Måtten är uppskattade från mäklarens planritning.');
+}
+const exampleSelect = document.querySelector<HTMLSelectElement>('#example-select')!;
+exampleSelect.addEventListener('change', () => {
+  openExample(exampleSelect.value);
+  exampleSelect.value = '';
+});
+const exampleParam = new URLSearchParams(location.search).get('exempel');
+if (exampleParam) openExample(exampleParam);
 
 // Spara innan sidan stängs
 window.addEventListener('beforeunload', () => store.save());

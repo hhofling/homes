@@ -597,3 +597,13 @@ kbd {
 .tool-link.tomt-link {
   color: #2f7a4b;
 }
+
+/* Exempelväljare */
+.panel .example-select {
+  width: 100%;
+  margin-top: 8px;
+}
+.top-actions .example-select {
+  max-width: 130px;
+  min-width: 95px;
+}

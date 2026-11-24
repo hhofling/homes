@@ -9,6 +9,7 @@ import { pickables, siteToProject } from './quantities';
 import { normalizePlan } from '../store';
 import { ARTIFACT_LINKS, download, inArtifact, safeFilename, sendHandoff } from '../common';
 import type { Building } from './types';
+import { EXAMPLE_ID, exampleSite } from '../exempel/hogbovagen333';
 
 const store = new SiteStore();
 const ed = new Editor(document.querySelector<HTMLElement>('#view')!, store);
@@ -312,3 +313,20 @@ for (const [id, tool] of [
 
 renderTop();
 window.addEventListener('beforeunload', () => store.save());
+
+// ---- Exempel ----
+function openExample(id: string) {
+  if (id !== EXAMPLE_ID) return;
+  const site = exampleSite();
+  const existing = store.sites.find((s) => s.id === site.id);
+  if (existing) store.switchTo(existing.id);
+  else store.add(site);
+  notify('Öppnade Högbovägen 333: huvudbyggnad med uterum, gäststuga, två gästhus, garage/bod och brygga. Huset har planritningen inlagd. Tomtens form och placeringen av byggnaderna är uppskattade.', 10000);
+}
+const exampleSelect = $<HTMLSelectElement>('#example-select');
+exampleSelect.addEventListener('change', () => {
+  openExample(exampleSelect.value);
+  exampleSelect.value = '';
+});
+const exampleParam = new URLSearchParams(location.search).get('exempel');
+if (exampleParam) openExample(exampleParam);

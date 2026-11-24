@@ -41,6 +41,10 @@ En tredje sida (`tomt.html`) där du ritar tomten och det som ska byggas i 3D:
 
 Tomter sparas i webbläsaren och kan sparas/öppnas som fil (`.tomt.json`).
 
+## Exempel
+
+- **Högbovägen 333, Sandviken** – fritidshus vid Lillsjön ritat efter mäklarens planritning i försäljningsannonsen (2023): bottenvåning med uterum och övervåning i Planritaren, samt tomten med huvudbyggnad, gäststuga, gästhus, garage/bod och brygga i Tomtplaneraren. Måtten och placeringen på tomten är uppskattade. Öppna via *Öppna ett exempel…* / *Exempel…*, eller med `?exempel=hogbovagen333` i adressen. Koden finns i `src/exempel/hogbovagen333.ts`.
+
 ## Kom igång
 
 ```bash
