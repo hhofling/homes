@@ -3,7 +3,8 @@ import { ProjectStore } from './store';
 import { ProjectUI } from './ui';
 import { reportHTML } from './report';
 import { materialsCSV } from './calc';
-import { ARTIFACT_LINKS, download, inArtifact, safeFilename } from '../common';
+import { ARTIFACT_LINKS, download, inArtifact, receiveHandoff, safeFilename } from '../common';
+import { normalizeProject } from './store';
 
 const store = new ProjectStore();
 const main = document.querySelector<HTMLElement>('#main')!;
@@ -146,6 +147,25 @@ if (inArtifact()) {
     link.rel = 'noopener';
   } else link.hidden = true;
 }
+
+const tomtLink = document.querySelector<HTMLAnchorElement>('#link-tomt')!;
+if (inArtifact()) {
+  if (ARTIFACT_LINKS.tomtplaneraren) {
+    tomtLink.href = ARTIFACT_LINKS.tomtplaneraren;
+    tomtLink.target = '_blank';
+    tomtLink.rel = 'noopener';
+  } else tomtLink.hidden = true;
+} else tomtLink.target = 'tomtplaneraren';
+
+// Inköpsplan som skickats hit från Tomtplaneraren
+receiveHandoff('byggplaneraren', (raw) => {
+  const p = normalizeProject(raw);
+  const existing = store.projects.find((x) => x.id === p.id);
+  if (existing) store.switchTo(existing.id);
+  else store.add(p);
+  ui.go('overview');
+  notify(`Skapade "${store.project.name}" från Tomtplaneraren: ${p.tasks.length} moment och ${p.materials.length} material. Se Material och Inköpslistor.`);
+});
 
 renderProjects();
 ui.render();

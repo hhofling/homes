@@ -40,7 +40,7 @@ export const CATEGORIES = [
   'Övrigt',
 ];
 
-export const UNITS = ['st', 'm²', 'm', 'l', 'kg', 'förp', 'rulle', 'säck', 'burk', 'pall', 'tim'];
+export const UNITS = ['st', 'm²', 'm', 'm³', 'l', 'kg', 'ton', 'förp', 'rulle', 'säck', 'burk', 'pall', 'tim'];
 
 /** Enheter som köps i hela antal. */
 const WHOLE_UNITS = new Set(['st', 'förp', 'rulle', 'säck', 'burk', 'pall']);

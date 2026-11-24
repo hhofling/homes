@@ -26,6 +26,21 @@ En andra sida (`byggprojekt.html`) för att planera renoveringar och byggen:
 
 Allt sparas i webbläsaren; projekt kan sparas och öppnas som fil (`.bygg.json`).
 
+## Tomtplaneraren (3D)
+
+En tredje sida (`tomt.html`) där du ritar tomten och det som ska byggas i 3D:
+
+- **Tomtgräns** – klicka ut hörnen eller skriv in måtten. Längder och tomtarea visas direkt.
+- **Byggnader** – bostadshus, garage, carport, attefallshus, friggebod och förråd med våningar, takform (sadeltak, valmat, pulpet, platt), taklutning, grund och färger. Fönster och dörrar läggs ut automatiskt.
+- **Mark och trädgård** – altan, uteplats, pool, uppfart, rabatt, gräsmatta, gång, staket, häck, mur, träd och buskar.
+- **Sol och skugga** – välj årstid och klockslag.
+- **Regelkoll** – avstånd till tomtgränsen (4,5 m), friggebod (15 m², 3 m) och attefallshus (30 m², 4 m). Bara vägledning – detaljplanen kan säga annat.
+- **Planritning** – ett hus blir en plan i Planritaren med ytterväggar, fönster och dörr. Det du ritar där (rum, väggar, möbler) syns sedan i 3D.
+- **Inköpsplan** – skapar ett projekt i Byggplaneraren med moment, material, mängder och riktpriser för grund, stomme, fasad, tak, fönster, el, VVS, altan, plattor, staket m.m.
+- **Ritningsblad** – situationsplan med mått och avstånd samt fasader från fyra håll, som en A3-bild.
+
+Tomter sparas i webbläsaren och kan sparas/öppnas som fil (`.tomt.json`).
+
 ## Kom igång
 
 ```bash

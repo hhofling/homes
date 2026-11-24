@@ -4,10 +4,12 @@ import { resolve } from 'node:path';
 export default defineConfig({
   base: './',
   build: {
+    chunkSizeWarningLimit: 900,
     rollupOptions: {
       input: {
         planritaren: resolve(__dirname, 'index.html'),
         byggplaneraren: resolve(__dirname, 'byggprojekt.html'),
+        tomtplaneraren: resolve(__dirname, 'tomt.html'),
       },
     },
   },

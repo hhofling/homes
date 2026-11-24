@@ -593,3 +593,7 @@ kbd {
     max-height: 100vh;
   }
 }
+
+.tool-link.tomt-link {
+  color: #2f7a4b;
+}

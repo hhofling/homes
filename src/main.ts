@@ -3,7 +3,8 @@ import { Store } from './store';
 import { Editor } from './editor';
 import { setupUI } from './ui';
 import { downloadJSON, downloadPNG, downloadSVG, planToSVG, inArtifact } from './export';
-import { ARTIFACT_LINKS } from './common';
+import { ARTIFACT_LINKS, receiveHandoff } from './common';
+import { normalizePlan } from './store';
 
 const store = new Store();
 const svg = document.querySelector<SVGSVGElement>('#canvas')!;
@@ -59,6 +60,27 @@ if (inArtifact()) {
     byggLink.rel = 'noopener';
   } else byggLink.hidden = true;
 }
+
+// Länk till Tomtplaneraren (3D)
+const tomtLink = document.querySelector<HTMLAnchorElement>('#link-tomt')!;
+if (inArtifact()) {
+  if (ARTIFACT_LINKS.tomtplaneraren) {
+    tomtLink.href = ARTIFACT_LINKS.tomtplaneraren;
+    tomtLink.target = '_blank';
+    tomtLink.rel = 'noopener';
+  } else tomtLink.hidden = true;
+} else tomtLink.target = 'tomtplaneraren';
+
+// Planritning som skickats hit från Tomtplaneraren
+receiveHandoff('planritaren', (raw) => {
+  const plan = normalizePlan(raw);
+  const existing = store.plans.find((p) => p.id === plan.id);
+  if (existing) store.switchTo(existing.id);
+  else store.addPlan(plan);
+  editor.select(null);
+  requestAnimationFrame(() => editor.fitView());
+  notify(`Öppnade "${store.plan.name}" från Tomtplaneraren. Ändringar här syns i 3D-vyn.`);
+});
 
 // Spara innan sidan stängs
 window.addEventListener('beforeunload', () => store.save());

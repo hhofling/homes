@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Tomtplaneraren – rita tomt, hus, garage, altan och trädgård i 3D och gör om det till planritningar, ritningsblad och inköpsplaner." />
+    <title>Tomtplaneraren</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%232f7a4b'/%3E%3Cpath d='M6 16l10-8 10 8M9 14v10h14V14' fill='none' stroke='white' stroke-width='2.5' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  </head>
+  <body class="tomt">
+    <header class="topbar">
+      <div class="brand">
+        <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><rect width="32" height="32" rx="6" fill="#2f7a4b"/><path d="M6 16l10-8 10 8M9 14v10h14V14" fill="none" stroke="white" stroke-width="2.5" stroke-linejoin="round"/></svg>
+        <span>Tomtplaneraren</span>
+      </div>
+      <select id="site-select" class="site-select" aria-label="Välj tomt"></select>
+      <input id="site-name" class="plan-name" type="text" aria-label="Tomtens namn" />
+      <div class="top-actions">
+        <button id="btn-undo" title="Ångra (Ctrl+Z)">↶ Ångra</button>
+        <button id="btn-redo" title="Gör om (Ctrl+Shift+Z)">↷ Gör om</button>
+        <span class="sep"></span>
+        <button id="btn-new" title="Börja på en ny, tom tomt">+ Ny</button>
+        <button id="btn-variant" title="Kopiera tomten för att prova en annan lösning">Variant</button>
+        <button id="btn-delete" title="Ta bort den här tomten">Ta bort</button>
+        <span class="sep"></span>
+        <button id="btn-open" title="Öppna en sparad tomtfil (.json)">Öppna fil…</button>
+        <button id="btn-save" title="Spara tomten som fil (.json)">Spara fil</button>
+        <button id="btn-image" title="Spara den aktuella 3D-vyn som bild">3D-bild</button>
+        <button id="btn-sheet" class="primary" title="Situationsplan och fasader som bild (A3)">Ritningsblad</button>
+        <span class="sep"></span>
+        <a id="link-planritaren" class="tool-link" href="./index.html" title="Öppna Planritaren">Planritaren ↗</a>
+        <a id="link-bygg" class="tool-link" href="./byggprojekt.html" title="Öppna Byggplaneraren">Byggplaneraren ↗</a>
+      </div>
+      <input id="file-input" type="file" accept=".json,application/json" hidden />
+      <input id="plan-file-input" type="file" accept=".json,application/json" hidden />
+    </header>
+
+    <div class="app">
+      <aside class="panel left">
+        <section>
+          <h2>Rita</h2>
+          <div id="tools"></div>
+        </section>
+        <section>
+          <h2>Visa</h2>
+          <label class="row"><input type="checkbox" id="opt-roofs" /> Tak (av = se in i huset)</label>
+          <label class="row"><input type="checkbox" id="opt-furniture" /> Möbler från planritningen</label>
+          <label class="row"><input type="checkbox" id="opt-labels" /> Namn och mått</label>
+          <label class="row"><input type="checkbox" id="opt-grid-show" /> Rutnät (1 m)</label>
+          <label class="row"><input type="checkbox" id="opt-snap" /> Fäst mot</label>
+          <label class="row">Fäst var
+            <select id="opt-grid">
+              <option value="10">1 cm</option>
+              <option value="100">10 cm</option>
+              <option value="500">50 cm</option>
+              <option value="1000">1 m</option>
+            </select>
+          </label>
+        </section>
+        <section>
+          <h2>Sol och skugga</h2>
+          <label class="row">Årstid
+            <select id="opt-season">
+              <option value="23">Midsommar</option>
+              <option value="10">Maj / augusti</option>
+              <option value="0">Vår / höst</option>
+              <option value="-23">Vinter</option>
+            </select>
+          </label>
+          <input id="opt-hour" type="range" min="4" max="22" step="0.25" aria-label="Klockslag" class="slider" />
+          <div class="muted small"><span id="sun-text"></span> · norr är uppåt i vyn ovanifrån</div>
+        </section>
+      </aside>
+
+      <main class="canvas-wrap view-wrap">
+        <div id="view" class="view"></div>
+        <div class="viewbar">
+          <button id="view-3d" class="on" title="Fri 3D-vy">3D</button>
+          <button id="view-top" title="Rakt ovanifrån – bra när du ritar">Ovanifrån</button>
+        </div>
+        <div class="zoom">
+          <button id="zoom-in" title="Zooma in">+</button>
+          <button id="zoom-out" title="Zooma ut">−</button>
+          <button id="zoom-fit" title="Visa hela tomten">⤢</button>
+        </div>
+        <div class="statusbar">
+          <span id="status-hint"></span>
+          <span class="spacer"></span>
+          <span id="status-measure" class="measure"></span>
+          <span id="status-cursor"></span>
+        </div>
+      </main>
+
+      <aside class="panel right">
+        <section>
+          <h2>Egenskaper</h2>
+          <div id="props"></div>
+        </section>
+        <section class="convert">
+          <h2>Gör om till</h2>
+          <button id="btn-make-project" class="big">
+            <b>Inköpsplan och budget</b>
+            <span>Moment, material, mängder och kostnad i Byggplaneraren</span>
+          </button>
+          <button id="btn-sheet-side" class="big">
+            <b>Ritningsblad</b>
+            <span>Situationsplan och fasader från fyra håll (bild)</span>
+          </button>
+          <p class="muted small">Planritning för ett hus: markera huset och välj <b>Skapa planritning</b>.</p>
+        </section>
+        <section>
+          <h2>Sammanställning</h2>
+          <div id="summary" class="summary"></div>
+        </section>
+      </aside>
+    </div>
+
+    <dialog id="project-dialog" class="dialog">
+      <form method="dialog">
+        <h2>Skapa inköpsplan</h2>
+        <p class="muted small">Välj vad som ska byggas. Mängder och priser räknas fram från måtten – de är grova riktvärden som du justerar i Byggplaneraren.</p>
+        <div id="pick-list" class="pick-list"></div>
+        <div class="btn-row end">
+          <button value="cancel">Avbryt</button>
+          <button value="ok" class="primary" id="pick-ok">Skapa inköpsplan</button>
+        </div>
+      </form>
+    </dialog>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/src/tomt/main.ts"></script>
+  </body>
+</html>

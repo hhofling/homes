@@ -769,3 +769,7 @@ textarea.quote {
     order: -1;
   }
 }
+
+.tool-link.tomt-link {
+  color: #2f7a4b;
+}
