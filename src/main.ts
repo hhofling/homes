@@ -6,6 +6,7 @@ import { downloadJSON, downloadPNG, downloadSVG, planToSVG, inArtifact } from '.
 import { ARTIFACT_LINKS, receiveHandoff } from './common';
 import { normalizePlan } from './store';
 import { EXAMPLE_ID, examplePlans } from './exempel/hogbovagen333';
+import { setupImageImport } from './bildimport';
 
 const store = new Store();
 const svg = document.querySelector<SVGSVGElement>('#canvas')!;
@@ -100,6 +101,60 @@ exampleSelect.addEventListener('change', () => {
 });
 const exampleParam = new URLSearchParams(location.search).get('exempel');
 if (exampleParam) openExample(exampleParam);
+
+// ----- 3D-vy (laddas först när den behövs) -----
+const open3D = () =>
+  import('./plan3d')
+    .then((m) => m.show3D(store.plan, notify))
+    .catch((err) => notify(`Kunde inte visa 3D: ${err.message}`));
+document.querySelector('#btn-3d')!.addEventListener('click', open3D);
+
+// ----- Ritning från bild -----
+const imageImport = setupImageImport({
+  notify,
+  onCreate: (plan, show3d) => {
+    store.addPlan(plan);
+    editor.select(null);
+    requestAnimationFrame(() => editor.fitView());
+    notify(
+      plan.walls.length
+        ? `Skapade "${plan.name}" från bilden. Kontrollera väggarna mot bilden under och rätta det som blev fel – rummen heter "Rum 1", "Rum 2" … och kan döpas om.`
+        : `Bilden ligger nu som bakgrund. Rita väggar och rum ovanpå den (verktyget Vägg eller Rum).`,
+    );
+    if (show3d) void open3D();
+  },
+});
+document.querySelector('#btn-image')!.addEventListener('click', () => imageImport.open());
+
+// ----- Bakgrundsbild -----
+const bgPanel = document.querySelector<HTMLElement>('#bg-panel')!;
+const bgVisible = document.querySelector<HTMLInputElement>('#bg-visible')!;
+const bgOpacity = document.querySelector<HTMLInputElement>('#bg-opacity')!;
+const syncBg = () => {
+  const bg = store.plan.background;
+  bgPanel.hidden = !bg;
+  if (!bg) return;
+  bgVisible.checked = bg.visible;
+  if (document.activeElement !== bgOpacity) bgOpacity.value = String(bg.opacity);
+};
+store.subscribe(syncBg);
+syncBg();
+bgVisible.addEventListener('change', () => {
+  if (!store.plan.background) return;
+  store.plan.background.visible = bgVisible.checked;
+  store.changed();
+});
+bgOpacity.addEventListener('input', () => {
+  if (!store.plan.background) return;
+  store.plan.background.opacity = Number(bgOpacity.value);
+  store.changed();
+});
+document.querySelector('#bg-remove')!.addEventListener('click', () => {
+  if (!store.plan.background) return;
+  store.checkpoint();
+  delete store.plan.background;
+  store.changed();
+});
 
 // Spara innan sidan stängs
 window.addEventListener('beforeunload', () => store.save());

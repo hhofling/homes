@@ -731,3 +731,20 @@ export function disposeGroup(g: THREE.Object3D) {
     if ((o as THREE.Mesh).geometry) (o as THREE.Mesh).geometry.dispose();
   });
 }
+
+/**
+ * En planritning ensam i 3D (utan tomt och tak), centrerad kring origo.
+ * Används av "Visa i 3D" i Planritaren.
+ */
+export function buildPlanModel(plan: Plan, opts: { furniture: boolean; height?: number }): THREE.Group {
+  const xs = [...plan.walls.flatMap((w) => [w.a.x, w.b.x]), ...plan.rooms.flatMap((r) => r.points.map((p) => p.x))];
+  const ys = [...plan.walls.flatMap((w) => [w.a.y, w.b.y]), ...plan.rooms.flatMap((r) => r.points.map((p) => p.y))];
+  const g = new THREE.Group();
+  if (!xs.length) return g;
+  const floorHeight = opts.height ?? 2500;
+  // planWalls centrerar kring -w/2, -d/2: välj w och d så att mitten hamnar i origo
+  const fake = { w: Math.min(...xs) + Math.max(...xs), d: Math.min(...ys) + Math.max(...ys), floorHeight, floors: 1 } as Building;
+  const H = floorHeight * M;
+  g.add(planWalls(fake, plan, H, mat('#ece6da'), { roofs: true, furniture: opts.furniture }));
+  return g;
+}

@@ -59,6 +59,20 @@ export interface Dimension {
   b: Vec;
 }
 
+/** En bild (t.ex. en inskannad planritning) som ligger under ritningen att rita efter. */
+export interface Background {
+  /** Bilden som data-URL */
+  src: string;
+  /** Bildens övre vänstra hörn och storlek i mm */
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  /** 0–1 */
+  opacity: number;
+  visible: boolean;
+}
+
 export interface Plan {
   id: string;
   name: string;
@@ -68,6 +82,7 @@ export interface Plan {
   items: Item[];
   labels: Label[];
   dims: Dimension[];
+  background?: Background;
   updatedAt: number;
 }
 

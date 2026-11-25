@@ -17,11 +17,36 @@ export function normalizePlan(raw: any): Plan {
   for (const key of ['walls', 'openings', 'rooms', 'items', 'labels', 'dims'] as const) {
     if (Array.isArray(raw[key])) (p as any)[key] = raw[key];
   }
+  const bg = raw.background;
+  if (bg && typeof bg.src === 'string' && [bg.x, bg.y, bg.w, bg.h].every((v) => typeof v === 'number' && isFinite(v))) {
+    p.background = {
+      src: bg.src,
+      x: bg.x,
+      y: bg.y,
+      w: bg.w,
+      h: bg.h,
+      opacity: typeof bg.opacity === 'number' ? Math.min(1, Math.max(0, bg.opacity)) : 0.5,
+      visible: bg.visible !== false,
+    };
+  }
   p.updatedAt = typeof raw.updatedAt === 'number' ? raw.updatedAt : Date.now();
   return p;
 }
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v));
+
+// Bakgrundsbilder är stora. I ångra-historiken sparas de bara en gång och refereras med en kort nyckel.
+const imageRefs = new Map<string, string>();
+const refFor = (src: string) => {
+  const key = `img:${src.length}:${src.slice(-24)}`;
+  imageRefs.set(key, src);
+  return key;
+};
+/** Planen som text, med bakgrundsbilden ersatt av en referens (för ångra och drag). */
+export const snapshotPlan = (p: Plan) =>
+  JSON.stringify(p, (k, v) => (k === 'src' && typeof v === 'string' && v.startsWith('data:') ? refFor(v) : v));
+export const restorePlan = (s: string): Plan =>
+  JSON.parse(s, (k, v) => (k === 'src' && typeof v === 'string' && v.startsWith('img:') ? (imageRefs.get(v) ?? '') : v));
 
 type Listener = () => void;
 
@@ -55,7 +80,7 @@ export class Store {
 
   /** Spara nuvarande läge i ångra-historiken. Anropas innan en ändring. */
   checkpoint() {
-    this.undoStack.push(JSON.stringify(this.plan));
+    this.undoStack.push(snapshotPlan(this.plan));
     if (this.undoStack.length > 200) this.undoStack.shift();
     this.redoStack = [];
   }
@@ -77,15 +102,15 @@ export class Store {
   undo() {
     const prev = this.undoStack.pop();
     if (!prev) return;
-    this.redoStack.push(JSON.stringify(this.plan));
-    this.replaceCurrent(JSON.parse(prev));
+    this.redoStack.push(snapshotPlan(this.plan));
+    this.replaceCurrent(restorePlan(prev));
   }
 
   redo() {
     const next = this.redoStack.pop();
     if (!next) return;
-    this.undoStack.push(JSON.stringify(this.plan));
-    this.replaceCurrent(JSON.parse(next));
+    this.undoStack.push(snapshotPlan(this.plan));
+    this.replaceCurrent(restorePlan(next));
   }
 
   private replaceCurrent(p: Plan) {
@@ -153,7 +178,10 @@ export class Store {
   }
 
   save() {
-    safeSet(STORAGE_KEY, JSON.stringify(this.plans));
+    // Om bakgrundsbilderna inte får plats sparas planerna utan dem (ritningen är viktigast)
+    if (!safeSet(STORAGE_KEY, JSON.stringify(this.plans))) {
+      safeSet(STORAGE_KEY, JSON.stringify(this.plans.map((p) => ({ ...p, background: undefined }))));
+    }
     safeSet(CURRENT_KEY, this.plan.id);
   }
 }
@@ -172,11 +200,13 @@ function safeGet(key: string): string | null {
     return null;
   }
 }
-function safeSet(key: string, value: string) {
+function safeSet(key: string, value: string): boolean {
   try {
     localStorage.setItem(key, value);
+    return true;
   } catch {
-    /* lagring otillgänglig – fortsätt utan */
+    /* lagring otillgänglig eller full – fortsätt utan */
+    return false;
   }
 }
 

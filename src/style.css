@@ -607,3 +607,182 @@ kbd {
   max-width: 130px;
   min-width: 95px;
 }
+
+/* ----- Ritning från bild ----- */
+button.accent {
+  border-color: #7b5cc4;
+  color: #5b3fa8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) button.accent {
+    color: #c3b2f0;
+    border-color: #7b5cc4;
+  }
+}
+.dialog {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+}
+.dialog::backdrop {
+  background: rgba(15, 20, 30, 0.45);
+}
+.import-dialog {
+  width: min(1180px, 96vw);
+  height: min(820px, 92vh);
+  padding: 14px 18px;
+}
+.import-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.import-dialog.dragging {
+  outline: 3px dashed #7b5cc4;
+}
+.import-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.import-head h2 {
+  margin: 0;
+  font-size: 17px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text);
+}
+.import-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+}
+.import-view {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.import-drop {
+  max-width: 420px;
+  text-align: center;
+  padding: 24px;
+}
+.import-canvas {
+  display: block;
+  background: #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+}
+.import-canvas.measuring {
+  cursor: crosshair;
+}
+.import-measure-hint {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #d6336c;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  max-width: 90%;
+}
+.import-side {
+  width: 350px;
+  flex: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.import-side section {
+  padding: 4px 0 10px;
+  border-bottom: 1px solid var(--border);
+}
+.import-side h3 {
+  margin: 8px 0 4px;
+  font-size: 13px;
+}
+.import-side .row {
+  align-items: flex-start;
+}
+.import-side .row.col {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+}
+.import-side .btn-row.end {
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 12px;
+}
+.import-side .unit-input input {
+  width: 80px;
+}
+#bg-panel input[type='range'] {
+  margin-left: auto;
+  width: 120px;
+}
+@media (max-width: 800px) {
+  .import-body {
+    flex-direction: column;
+  }
+  .import-side {
+    width: auto;
+  }
+  .import-view {
+    min-height: 40vh;
+  }
+}
+
+/* ----- 3D-vy ----- */
+.view3d-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+}
+.view3d-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.view3d-bar .spacer {
+  flex: 1;
+}
+.view3d-bar .row {
+  margin: 0;
+}
+.view3d-canvas {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+.view3d-canvas canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+@media (max-width: 1500px) {
+  .top-actions button,
+  .top-actions .tool-link {
+    padding: 6px 8px;
+  }
+  .topbar .plan-name {
+    max-width: 190px;
+  }
+}

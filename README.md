@@ -11,6 +11,8 @@ Ett webbaserat ritprogram för att rita planritningar (blueprints) och prova oli
 - **Mått** – väggmått visas automatiskt, och du kan lägga till egna måttlinjer. Allt i meter med decimalkomma.
 - **Designlösningar** – flera planer sparas lokalt. "Skapa variant" kopierar planen så att du kan prova en annan möblering eller planlösning utan att ändra originalet.
 - **Spara, öppna, exportera** – sparas automatiskt i webbläsaren. Exportera som PNG, SVG (skala 1:100 i mm) eller planfil (.json), och skriv ut.
+- **Ritning från bild** – ladda upp en bild på en planritning (t.ex. mäklarens ritning, en skärmbild eller en skanning). Väggar, dörrar, fönster och rum letas fram automatiskt och blir en ritning du kan ändra i. Ange husets bredd eller mät en känd sträcka på bilden för rätt skala. Bilden kan ligga kvar under ritningen (eller användas bara som bakgrund att rita av). Fungerar bäst med fyllda, mörka väggar som går rakt; snedställda väggar och rumsnamn får du lägga till själv. Allt sker i webbläsaren – bilden skickas ingenstans.
+- **Visa i 3D** – se planen med väggar, dörrar, fönster, golv och möbler i 3D. Välj takhöjd och spara en bild.
 - Rutnät med fäst-funktion, zoom/panorering, ångra/gör om och en sammanställning av alla rumsareor.
 
 ## Byggplaneraren

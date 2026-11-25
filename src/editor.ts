@@ -1,5 +1,6 @@
 import type { Plan, Vec, Selection, Wall, Item, OpeningKind, Room } from './types';
 import type { Store } from './store';
+import { snapshotPlan, restorePlan } from './store';
 import {
   dist,
   snapValue,
@@ -103,6 +104,8 @@ export class Editor {
 
   private gridG: SVGGElement;
   private worldG: SVGGElement;
+  private bgG: SVGGElement;
+  private bgKey = '';
   private sceneG: SVGGElement;
   private overlayG: SVGGElement;
   private chain: Vec[] = [];
@@ -119,7 +122,8 @@ export class Editor {
     this.worldG = this.el('g', { class: 'world' });
     this.sceneG = this.el('g', { class: 'scene' });
     this.overlayG = this.el('g', { class: 'overlay' });
-    this.worldG.append(this.sceneG, this.overlayG);
+    this.bgG = this.el('g', { class: 'background' });
+    this.worldG.append(this.bgG, this.sceneG, this.overlayG);
     svg.append(this.gridG, this.worldG);
 
     svg.addEventListener('pointerdown', (e) => this.pointerDown(e));
@@ -177,7 +181,13 @@ export class Editor {
 
   fitView() {
     const r = this.svg.getBoundingClientRect();
-    const b = planBounds(this.plan) ?? { minX: 0, minY: 0, maxX: 8000, maxY: 6000 };
+    let b = planBounds(this.plan);
+    const bg = this.plan.background;
+    if (bg?.visible) {
+      const bb = { minX: bg.x, minY: bg.y, maxX: bg.x + bg.w, maxY: bg.y + bg.h };
+      b = b ? { minX: Math.min(b.minX, bb.minX), minY: Math.min(b.minY, bb.minY), maxX: Math.max(b.maxX, bb.maxX), maxY: Math.max(b.maxY, bb.maxY) } : bb;
+    }
+    b ??= { minX: 0, minY: 0, maxX: 8000, maxY: 6000 };
     const pad = 900;
     const w = b.maxX - b.minX + pad * 2;
     const h = b.maxY - b.minY + pad * 2;
@@ -455,7 +465,7 @@ export class Editor {
         const hit = this.hitTest(p);
         if (hit) {
           if (!this.selection || this.selection.id !== hit.id) this.select(hit);
-          this.drag = { mode: 'move', start: p, orig: JSON.stringify(this.plan), moved: false };
+          this.drag = { mode: 'move', start: p, orig: snapshotPlan(this.plan), moved: false };
         } else {
           this.select(null);
           this.drag = { mode: 'pan', sx: sp.x, sy: sp.y, vx: this.tx, vy: this.ty };
@@ -628,7 +638,7 @@ export class Editor {
         const dy = this.snapDelta(p.y - d.start.y);
         if (!d.moved && Math.hypot(p.x - d.start.x, p.y - d.start.y) < this.tol(3)) return;
         begin();
-        const orig: Plan = JSON.parse(d.orig);
+        const orig: Plan = restorePlan(d.orig);
         this.applyMove(orig, sel, dx, dy, p);
         break;
       }
@@ -913,7 +923,7 @@ export class Editor {
       return;
     }
     this.store.checkpoint();
-    const orig: Plan = JSON.parse(JSON.stringify(this.plan));
+    const orig: Plan = restorePlan(snapshotPlan(this.plan));
     this.applyMove(orig, sel, dx, dy, this.rawCursor);
     this.store.changed();
   }
@@ -923,9 +933,31 @@ export class Editor {
   renderAll() {
     this.worldG.setAttribute('transform', `matrix(${this.scale} 0 0 ${this.scale} ${this.tx} ${this.ty})`);
     this.renderGrid();
+    this.renderBackground();
     this.sceneG.innerHTML = renderPlan(this.plan, this.settings);
     this.renderOverlay();
     this.onStatus({ zoom: this.scale });
+  }
+
+  /** Bakgrundsbilden ritas bara om när den ändrats (den kan vara stor). */
+  private renderBackground() {
+    const bg = this.plan.background;
+    const key = bg && bg.visible ? `${this.plan.id}|${bg.src.length}|${bg.src.slice(-32)}|${bg.x}|${bg.y}|${bg.w}|${bg.h}|${bg.opacity}` : '';
+    if (key === this.bgKey) return;
+    this.bgKey = key;
+    this.bgG.replaceChildren();
+    if (!bg || !bg.visible) return;
+    const img = this.el('image', {
+      x: String(bg.x),
+      y: String(bg.y),
+      width: String(bg.w),
+      height: String(bg.h),
+      opacity: String(bg.opacity),
+      preserveAspectRatio: 'none',
+      'pointer-events': 'none',
+    });
+    img.setAttribute('href', bg.src);
+    this.bgG.append(img);
   }
 
   private renderGrid() {

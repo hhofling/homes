@@ -18,6 +18,9 @@
         <button id="btn-undo" title="Ångra (Ctrl+Z)">↶ Ångra</button>
         <button id="btn-redo" title="Gör om (Ctrl+Shift+Z)">↷ Gör om</button>
         <span class="sep"></span>
+        <button id="btn-image" class="accent" title="Ladda upp en bild på en planritning och gör om den till en ritning">Från bild…</button>
+        <button id="btn-3d" class="accent" title="Se planen i 3D">Visa i 3D</button>
+        <span class="sep"></span>
         <button id="btn-open" title="Öppna en sparad planfil (.json)">Öppna fil…</button>
         <button id="btn-save" title="Spara planen som fil (.json)">Spara fil</button>
         <span class="sep"></span>
@@ -57,6 +60,14 @@
           <label class="row"><input type="checkbox" id="opt-lengths" checked /> Väggmått</label>
           <label class="row"><input type="checkbox" id="opt-areas" checked /> Rumsareor</label>
           <label class="row"><input type="checkbox" id="opt-furniture" checked /> Möbler</label>
+        </section>
+        <section id="bg-panel" hidden>
+          <h2>Bakgrundsbild</h2>
+          <label class="row"><input type="checkbox" id="bg-visible" checked /> Visa bilden</label>
+          <label class="row">Synlighet
+            <input type="range" id="bg-opacity" min="0.05" max="1" step="0.05" value="0.5" />
+          </label>
+          <button id="bg-remove">Ta bort bilden</button>
         </section>
         <section class="grow">
           <h2>Möbler &amp; inredning</h2>
