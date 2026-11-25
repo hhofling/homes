@@ -43,6 +43,19 @@ En tredje sida (`tomt.html`) där du ritar tomten och det som ska byggas i 3D:
 
 Tomter sparas i webbläsaren och kan sparas/öppnas som fil (`.tomt.json`).
 
+## Bildbiblioteket (bilder och AI)
+
+En fjärde sida (`bilder.html`) för bilder på huset, rummen och tomten:
+
+- **Bibliotek** – lägg till bilder (knapp, dra in eller klistra in), sortera i album, sök, byt namn och ladda ner. Bilderna sparas i webbläsaren (IndexedDB).
+- **Skissa på en bild** – penna, pil, ruta, ring och text i valfri färg, samt **Ändra här** som målar ut området som ska ändras. Ångra/gör om, flytta och ändra storlek.
+- **Kombinera bilder** – markera flera bilder och lägg dem i samma skiss, eller lägg in en bild ovanpå en annan.
+- **Be AI ändra bilden** – skriv vad du vill ha (t.ex. "bygg en veranda här"). Bilden, skissen och eventuella referensbilder skickas till Google Gemini eller OpenAI med din egen nyckel (läggs in under *AI-inställningar* och sparas bara i webbläsaren). Förslagen sparas i biblioteket och kan jämföras före/efter.
+- **Utan nyckel** – *Gör det själv i ChatGPT eller Gemini* sparar bilderna och kopierar en färdig text att klistra in där; resultatet läggs sedan in som förslag.
+- **Från de andra verktygen** – *Till bilder* i Planritarens 3D-vy och i Tomtplaneraren lägger vyn i biblioteket.
+
+Koden finns i `src/bilder/` (`model.ts` skissens innehåll, `editor.ts` ritytan, `ai.ts` AI-anropen, `db.ts` lagringen).
+
 ## Exempel
 
 - **Högbovägen 333, Sandviken** – fritidshus vid Lillsjön ritat efter mäklarens planritning i försäljningsannonsen (2023): bottenvåning med uterum och övervåning i Planritaren, samt tomten med huvudbyggnad, gäststuga, gästhus, garage/bod och brygga i Tomtplaneraren. Måtten och placeringen på tomten är uppskattade. Öppna via *Öppna ett exempel…* / *Exempel…*, eller med `?exempel=hogbovagen333` i adressen. Koden finns i `src/exempel/hogbovagen333.ts`.

@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { Plan } from './types';
 import { buildPlanModel, disposeGroup } from './tomt/scene';
-import { download, safeFilename } from './common';
+import { download, inArtifact, safeFilename, sendToImageLibrary } from './common';
 
 let open: { close: () => void } | null = null;
 
@@ -28,6 +28,7 @@ export function show3D(plan: Plan, notify: (msg: string) => void) {
       <button data-act="top">Ovanifrån</button>
       <button data-act="angle">Snett ovanifrån</button>
       <button data-act="png">Spara bild</button>
+      ${inArtifact() ? '' : '<button data-act="library" class="bilder-btn" title="Lägg bilden i Bildbiblioteket för att skissa på den och be AI göra den verklighetstrogen">Till bilder</button>'}
       <button data-act="close" class="primary">Stäng</button>
     </div>
     <div class="view3d-canvas"></div>`;
@@ -144,7 +145,15 @@ export function show3D(plan: Plan, notify: (msg: string) => void) {
     const act = (e.target as HTMLElement).closest<HTMLElement>('[data-act]')?.dataset.act;
     if (act === 'close') close();
     else if (act === 'top' || act === 'angle') view(act);
-    else if (act === 'png') {
+    else if (act === 'library') {
+      renderer.render(scene, camera);
+      renderer.domElement.toBlob((blob) => {
+        if (!blob) return;
+        sendToImageLibrary(blob, `${plan.name} i 3D`, 'Huset', 'planritaren')
+          .then(() => notify('Bilden finns nu i Bildbiblioteket – öppna det med knappen "Bilder och AI" uppe till höger. Där kan du skissa på bilden och be AI göra den verklighetstrogen.'))
+          .catch((err) => notify(`Kunde inte spara bilden: ${err.message}`));
+      }, 'image/png');
+    } else if (act === 'png') {
       renderer.render(scene, camera);
       renderer.domElement.toBlob((blob) => {
         if (blob) download(blob, `${safeFilename(plan.name)}-3d.png`).catch((err) => notify(`Kunde inte spara bilden: ${err.message}`));

@@ -7,7 +7,7 @@ import { drawingSheet, viewImage } from './sheet';
 import { planFromBuilding } from './toplan';
 import { pickables, siteToProject } from './quantities';
 import { normalizePlan } from '../store';
-import { ARTIFACT_LINKS, download, inArtifact, safeFilename, sendHandoff } from '../common';
+import { ARTIFACT_LINKS, download, imageLibraryNotice, inArtifact, linkTool, safeFilename, sendHandoff, sendToImageLibrary } from '../common';
 import type { Building } from './types';
 import { EXAMPLE_ID, exampleSite } from '../exempel/hogbovagen333';
 
@@ -173,6 +173,17 @@ $('#btn-image').addEventListener('click', () => {
   }, 'image/png');
 });
 
+const toLibBtn = $<HTMLButtonElement>('#btn-to-library');
+toLibBtn.hidden = inArtifact();
+toLibBtn.addEventListener('click', () => {
+  viewImage(ed).toBlob((blob) => {
+    if (!blob) return;
+    sendToImageLibrary(blob, `${store.site.name || 'Tomten'} i 3D`, 'Tomten', 'tomtplaneraren')
+      .then(() => notify(imageLibraryNotice(), 9000))
+      .catch((err) => notify(`Kunde inte spara bilden: ${err.message}`));
+  }, 'image/png');
+});
+
 // ---- Tomter ----
 const siteSelect = $<HTMLSelectElement>('#site-select');
 const nameInput = $<HTMLInputElement>('#site-name');
@@ -310,6 +321,8 @@ for (const [id, tool] of [
     a.rel = 'noopener';
   } else a.target = tool;
 }
+
+linkTool($<HTMLAnchorElement>('#link-bilder'), 'bildbiblioteket');
 
 renderTop();
 window.addEventListener('beforeunload', () => store.save());

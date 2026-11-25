@@ -34,6 +34,7 @@ export const ARTIFACT_LINKS = {
   planritaren: 'https://claude.ai/artifact/T9Rqjaa8q4FGmbQMprwqtP',
   byggplaneraren: 'https://claude.ai/artifact/AEJ4xDWqUNu9A38hpPRKA7',
   tomtplaneraren: 'https://claude.ai/artifact/MbcjYyQs1HRKN22enBCZuv',
+  bildbiblioteket: 'https://claude.ai/artifact/6MDuU8Jv5q2ZpYQutw9YHv',
 };
 
 // ----- Skicka data mellan verktygen (samma webbläsare) -----
@@ -81,3 +82,30 @@ export function receiveHandoff(tool: Tool, fn: (payload: any) => void) {
 export function toolUrl(tool: keyof typeof ARTIFACT_LINKS, page: string) {
   return inArtifact() ? ARTIFACT_LINKS[tool] : page;
 }
+
+/** Gör en länk till ett annat verktyg rätt både på webbplatsen och i en Claude-artefakt. */
+export function linkTool(a: HTMLAnchorElement | null, tool: keyof typeof ARTIFACT_LINKS) {
+  if (!a) return;
+  if (inArtifact()) {
+    if (ARTIFACT_LINKS[tool]) {
+      a.href = ARTIFACT_LINKS[tool];
+      a.target = '_blank';
+      a.rel = 'noopener';
+    } else a.hidden = true;
+  } else a.target = tool;
+}
+
+/**
+ * Lägger en bild i Bildbiblioteket (samma webbläsare). I en Claude-artefakt har varje verktyg
+ * sin egen lagring, så där går det inte – då returneras false.
+ */
+export async function sendToImageLibrary(blob: Blob, name: string, album: string, source: 'planritaren' | 'tomtplaneraren'): Promise<boolean> {
+  if (inArtifact()) return false;
+  const { addImage } = await import('./bilder/db');
+  await addImage(blob, { name, album, source });
+  return true;
+}
+
+/** Meddelande med länk efter att en bild skickats till Bildbiblioteket. */
+export const imageLibraryNotice = () =>
+  `Bilden finns nu i <a href="./bilder.html" target="bildbiblioteket">Bildbiblioteket</a>. Där kan du skissa på den och be AI visa hur det kan bli i verkligheten.`;

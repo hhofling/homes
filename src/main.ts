@@ -3,7 +3,7 @@ import { Store } from './store';
 import { Editor } from './editor';
 import { setupUI } from './ui';
 import { downloadJSON, downloadPNG, downloadSVG, planToSVG, inArtifact } from './export';
-import { ARTIFACT_LINKS, receiveHandoff } from './common';
+import { ARTIFACT_LINKS, linkTool, receiveHandoff } from './common';
 import { normalizePlan } from './store';
 import { EXAMPLE_ID, examplePlans } from './exempel/hogbovagen333';
 import { setupImageImport } from './bildimport';
@@ -72,6 +72,8 @@ if (inArtifact()) {
     tomtLink.rel = 'noopener';
   } else tomtLink.hidden = true;
 } else tomtLink.target = 'tomtplaneraren';
+
+linkTool(document.querySelector<HTMLAnchorElement>('#link-bilder'), 'bildbiblioteket');
 
 // Planritning som skickats hit från Tomtplaneraren
 receiveHandoff('planritaren', (raw) => {

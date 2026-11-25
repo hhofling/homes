@@ -3,7 +3,7 @@ import { ProjectStore } from './store';
 import { ProjectUI } from './ui';
 import { reportHTML } from './report';
 import { materialsCSV } from './calc';
-import { ARTIFACT_LINKS, download, inArtifact, receiveHandoff, safeFilename } from '../common';
+import { ARTIFACT_LINKS, download, inArtifact, linkTool, receiveHandoff, safeFilename } from '../common';
 import { normalizeProject } from './store';
 
 const store = new ProjectStore();
@@ -156,6 +156,8 @@ if (inArtifact()) {
     tomtLink.rel = 'noopener';
   } else tomtLink.hidden = true;
 } else tomtLink.target = 'tomtplaneraren';
+
+linkTool(document.querySelector<HTMLAnchorElement>('#link-bilder'), 'bildbiblioteket');
 
 // Inköpsplan som skickats hit från Tomtplaneraren
 receiveHandoff('byggplaneraren', (raw) => {

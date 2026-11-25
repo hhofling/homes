@@ -786,3 +786,16 @@ button.accent {
     max-width: 190px;
   }
 }
+
+.tool-link.bilder-link {
+  color: #7b3fa8;
+}
+button.bilder-btn {
+  border-color: #9a6cc4;
+  color: #7b3fa8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) button.bilder-btn {
+    color: #c9a3ec;
+  }
+}

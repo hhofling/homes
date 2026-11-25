@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Bildbiblioteket – samla bilder på huset och tomten, skissa på dem, kombinera bilder och be AI visa hur det kan bli." />
+    <title>Bildbiblioteket</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%237b3fa8'/%3E%3Cpath d='M6 23l6-7 4 4 3-3 7 6M6 8h20v16H6z' fill='none' stroke='white' stroke-width='2.2' stroke-linejoin='round'/%3E%3Ccircle cx='21' cy='12.5' r='2' fill='white'/%3E%3C/svg%3E" />
+  </head>
+  <body class="bilder">
+    <!-- ========== Biblioteket ========== -->
+    <div id="library-screen" class="screen">
+      <header class="topbar">
+        <div class="brand">
+          <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><rect width="32" height="32" rx="6" fill="#7b3fa8"/><path d="M6 23l6-7 4 4 3-3 7 6M6 8h20v16H6z" fill="none" stroke="white" stroke-width="2.2" stroke-linejoin="round"/><circle cx="21" cy="12.5" r="2" fill="white"/></svg>
+          <span>Bildbiblioteket</span>
+        </div>
+        <input id="search" class="plan-name search" type="search" placeholder="Sök bland bilderna…" aria-label="Sök" />
+        <div class="top-actions">
+          <button id="btn-upload" class="primary" title="Lägg till bilder från datorn eller mobilen">+ Lägg till bilder</button>
+          <button id="btn-new-sketch" title="Börja med en tom yta och skissa">Ny skiss</button>
+          <button id="btn-draft" class="accent" hidden title="Fortsätt där du var">Fortsätt skissa</button>
+          <span class="sep"></span>
+          <button id="btn-settings" title="Välj AI-tjänst och lägg in nyckel">AI-inställningar</button>
+          <span class="sep"></span>
+          <a id="link-planritaren" class="tool-link" href="./index.html">Planritaren ↗</a>
+          <a id="link-tomt" class="tool-link tomt-link" href="./tomt.html">Tomt i 3D ↗</a>
+          <a id="link-bygg" class="tool-link" href="./byggprojekt.html">Byggplaneraren ↗</a>
+        </div>
+      </header>
+      <div class="app lib-app">
+        <aside class="panel left">
+          <section>
+            <h2>Album</h2>
+            <ul id="albums" class="albums"></ul>
+            <button id="btn-new-album" class="link-btn">+ Nytt album</button>
+          </section>
+          <section class="muted small tips">
+            <h2>Så här gör du</h2>
+            <ol>
+              <li>Lägg till bilder – dra in dem hit, klistra in (Ctrl+V) eller tryck <b>+ Lägg till bilder</b>.</li>
+              <li>Dubbelklicka på en bild för att skissa på den: rita, peka med pilar, skriv och måla med <b>Ändra här</b> där något ska bli nytt.</li>
+              <li>Skriv vad du vill ha och tryck <b>Be AI ändra bilden</b>. Förslagen sparas här i biblioteket.</li>
+              <li>Vill du visa hur något ska se ut? Markera flera bilder och välj <b>Kombinera</b>, eller lägg till en referensbild.</li>
+            </ol>
+          </section>
+        </aside>
+        <main class="lib-main" id="drop-zone">
+          <div class="lib-head">
+            <h1 id="album-title">Alla bilder</h1>
+            <span id="album-count" class="muted"></span>
+            <span class="spacer"></span>
+            <select id="sort" aria-label="Sortera">
+              <option value="new">Nyast först</option>
+              <option value="old">Äldst först</option>
+              <option value="name">Namn</option>
+            </select>
+          </div>
+          <div id="grid" class="lib-grid-photos"></div>
+          <div id="empty" class="lib-empty" hidden>
+            <div class="empty-icon">🖼️</div>
+            <h2>Inga bilder här ännu</h2>
+            <p>Dra in bilder hit, klistra in en bild med Ctrl+V eller tryck på knappen.</p>
+            <button id="btn-upload-2" class="primary">+ Lägg till bilder</button>
+          </div>
+          <div class="drop-hint">Släpp bilderna här</div>
+        </main>
+        <aside class="panel right">
+          <section class="grow" id="details"></section>
+        </aside>
+      </div>
+    </div>
+
+    <!-- ========== Skissa och be AI ========== -->
+    <div id="editor-screen" class="screen" hidden>
+      <header class="topbar">
+        <button id="ed-back" title="Tillbaka till biblioteket (skissen sparas)">← Biblioteket</button>
+        <input id="ed-name" class="plan-name" type="text" aria-label="Skissens namn" />
+        <div class="top-actions">
+          <button id="ed-undo" title="Ångra (Ctrl+Z)">↶ Ångra</button>
+          <button id="ed-redo" title="Gör om (Ctrl+Shift+Z)">↷ Gör om</button>
+          <span class="sep"></span>
+          <button id="ed-clear" title="Ta bort allt du ritat (bilderna blir kvar)">Rensa skissen</button>
+          <button id="ed-save" title="Spara skissen som en bild i biblioteket">Spara i biblioteket</button>
+          <button id="ed-download" title="Ladda ner skissen som bild">Ladda ner</button>
+        </div>
+      </header>
+      <div class="app ed-app">
+        <aside class="panel left">
+          <section>
+            <h2>Rita</h2>
+            <div id="ed-tools" class="ed-tools"></div>
+          </section>
+          <section>
+            <h2>Färg</h2>
+            <div id="ed-colors" class="ed-colors"></div>
+            <h2 class="mt">Tjocklek</h2>
+            <div id="ed-weights" class="seg"></div>
+          </section>
+          <section>
+            <h2>Bilder</h2>
+            <button id="ed-add-image" class="wide" title="Lägg in en bild ovanpå, t.ex. en veranda du vill ha">+ Lägg in bild i skissen</button>
+            <p class="muted small">Bilden hamnar ovanpå och kan flyttas och ändras i storlek med <b>Flytta</b>.</p>
+          </section>
+          <section id="ed-selected" hidden>
+            <h2>Markerat</h2>
+            <div id="ed-sel-body"></div>
+          </section>
+        </aside>
+        <main class="canvas-wrap ed-canvas-wrap">
+          <div id="ed-canvas" class="ed-canvas"></div>
+          <div class="zoom">
+            <button id="ed-zoom-in" title="Zooma in">+</button>
+            <button id="ed-zoom-out" title="Zooma ut">−</button>
+            <button id="ed-zoom-fit" title="Visa hela bilden">⤢</button>
+          </div>
+          <div class="statusbar">
+            <span id="ed-hint"></span>
+            <span class="spacer"></span>
+            <span id="ed-zoom"></span>
+          </div>
+        </main>
+        <aside class="panel right ai-panel">
+          <section>
+            <h2>Be AI ändra bilden</h2>
+            <textarea id="ai-wish" rows="4" placeholder="Beskriv vad du vill ha, t.ex. ”Bygg en inglasad veranda där jag har ritat, med vita spröjsade fönster och svart plåttak”"></textarea>
+            <div id="ai-examples" class="chips"></div>
+            <label class="row" id="ai-sketch-row"><input type="checkbox" id="ai-send-sketch" checked /> Skicka med min skiss som vägledning</label>
+            <div class="ref-head">
+              <h3>Referensbilder</h3>
+              <button id="ai-add-ref" class="link-btn" title="Bilder som visar stil, material eller något du vill ha med">+ Lägg till</button>
+            </div>
+            <div id="ai-refs" class="refs"><span class="muted small">Valfritt: bilder som visar hur du vill att det ska se ut.</span></div>
+            <label class="row">Antal förslag
+              <select id="ai-count">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+              </select>
+            </label>
+            <button id="ai-go" class="primary ai-go">✨ Be AI ändra bilden</button>
+            <div id="ai-status" class="ai-status" role="status" aria-live="polite"></div>
+            <div class="ai-alt">
+              <button id="ai-claude" class="link-btn" hidden>💬 Hjälp mig formulera (Claude)</button>
+              <button id="ai-manual" class="link-btn">Gör det själv i ChatGPT eller Gemini…</button>
+              <span id="ai-provider" class="muted small"></span>
+            </div>
+          </section>
+          <section class="grow">
+            <h2>Förslag</h2>
+            <div id="ai-results" class="ai-results"></div>
+          </section>
+        </aside>
+      </div>
+    </div>
+
+    <!-- ========== Dialoger ========== -->
+    <dialog id="settings-dialog" class="dialog settings-dialog">
+      <form method="dialog">
+        <h2>AI-inställningar</h2>
+        <p class="muted small">För att AI ska kunna rita om bilder behövs en bild-AI från Google eller OpenAI. Du skapar en egen nyckel hos tjänsten och klistrar in den här. Nyckeln sparas bara i den här webbläsaren och skickas bara till den tjänst du väljer. Du betalar tjänsten direkt, per bild.</p>
+        <div class="provider-pick" id="provider-pick"></div>
+        <div id="provider-help" class="provider-help small"></div>
+        <label class="field"><span>Nyckel</span><input type="password" id="set-key" autocomplete="off" spellcheck="false" placeholder="Klistra in nyckeln här" /></label>
+        <label class="field"><span>Modell</span>
+          <select id="set-model"><option value="">Automatiskt (den senaste)</option></select>
+        </label>
+        <div class="btn-row">
+          <button type="button" id="set-test">Testa nyckeln</button>
+          <span id="set-status" class="muted small set-status"></span>
+        </div>
+        <div class="btn-row end">
+          <button type="button" id="set-clear" class="danger">Ta bort nyckeln</button>
+          <span class="spacer"></span>
+          <button value="cancel">Avbryt</button>
+          <button value="ok" class="primary" id="set-ok">Spara</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="picker-dialog" class="dialog picker-dialog">
+      <form method="dialog">
+        <div class="picker-head">
+          <h2 id="picker-title">Välj bild</h2>
+          <span class="spacer"></span>
+          <button type="button" id="picker-file">Från datorn…</button>
+          <button value="cancel">Stäng</button>
+        </div>
+        <div id="picker-grid" class="lib-grid-photos small-grid"></div>
+      </form>
+    </dialog>
+
+    <dialog id="compare-dialog" class="dialog compare-dialog">
+      <div class="picker-head">
+        <h2>Före och efter</h2>
+        <span class="muted small">Dra i reglaget för att jämföra</span>
+        <span class="spacer"></span>
+        <button id="cmp-close" class="primary">Stäng</button>
+      </div>
+      <div class="compare-view" id="cmp-view">
+        <img id="cmp-after" alt="Efter" />
+        <div class="cmp-before-wrap" id="cmp-before-wrap"><img id="cmp-before" alt="Före" /></div>
+        <div class="cmp-line" id="cmp-line"></div>
+        <span class="cmp-label left">Före</span><span class="cmp-label right">Efter</span>
+      </div>
+      <input type="range" id="cmp-range" min="0" max="100" value="50" class="slider" aria-label="Jämför före och efter" />
+    </dialog>
+
+    <dialog id="manual-dialog" class="dialog manual-dialog">
+      <form method="dialog">
+        <h2>Gör det själv i ChatGPT eller Gemini</h2>
+        <ol class="manual-steps">
+          <li><button type="button" id="man-download" class="primary">1. Spara bilderna</button> <span class="muted small" id="man-files"></span></li>
+          <li><button type="button" id="man-copy">2. Kopiera texten</button> <span class="muted small" id="man-copied"></span></li>
+          <li>3. Öppna <a href="https://chatgpt.com/" target="_blank" rel="noopener">ChatGPT</a> eller <a href="https://gemini.google.com/" target="_blank" rel="noopener">Gemini</a>, bifoga bilderna (gem-ikonen) och klistra in texten.</li>
+          <li><button type="button" id="man-result">4. Lägg in bilden du fick tillbaka…</button> <span class="muted small">Spara först bilden från ChatGPT/Gemini på datorn.</span></li>
+        </ol>
+        <details class="small"><summary>Visa texten</summary><pre id="man-prompt" class="man-prompt"></pre></details>
+        <div class="btn-row end"><button value="cancel">Stäng</button></div>
+      </form>
+    </dialog>
+
+    <input id="file-input" type="file" accept="image/*" multiple hidden />
+    <input id="one-file-input" type="file" accept="image/*" hidden />
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/src/bilder/main.ts"></script>
+  </body>
+</html>
