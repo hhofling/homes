@@ -193,7 +193,7 @@ export const ACTION_LABELS: Record<StepAction, string> = {
   'bygg-schedule': 'Tidsplan',
   'bygg-shopping': 'Inköpslistor',
   'bygg-checklists': 'Checklistor',
-  bilder: 'Bildbiblioteket',
+  bilder: 'Öppna Bildbiblioteket',
 };
 
 const step = (phase: string, title: string, detail: string, action?: StepAction): Step => ({ id: uid('st'), phase, title, detail, action, done: false, note: '' });
@@ -239,6 +239,7 @@ export function generateSteps(p: Pick<HomeProject, 'kind' | 'who' | 'budget' | '
     s.push(step(DRAW, 'Rita förslaget', k.id === 'furnish' ? 'Möblera i skala och prova olika placeringar. Gör gärna flera varianter.' : 'Gör en kopia av ritningen och rita in det nya. Prova gärna flera varianter.', 'plan-new'));
     s.push(step(DRAW, 'Titta på förslaget i 3D', 'Se hur det känns i rummet innan du bestämmer dig.', 'plan-3d'));
   }
+  if (k.id !== 'other') s.push(step(DRAW, 'Skissa och låt AI visa hur det kan bli', 'Ta ett foto av rummet eller en bild från 3D-vyn, rita på den vad du vill ändra och be AI göra en verklighetstrogen bild. Kombinera gärna med inspirationsbilder.', 'bilder'));
 
   // Kalkyl
   if (k.byggTemplate || plot || k.id === 'extension') {

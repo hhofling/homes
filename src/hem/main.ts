@@ -84,6 +84,7 @@ fileInput.addEventListener('change', async () => {
 linkTool($<HTMLAnchorElement>('#link-planritaren'), 'planritaren');
 linkTool($<HTMLAnchorElement>('#link-tomt'), 'tomtplaneraren');
 linkTool($<HTMLAnchorElement>('#link-bygg'), 'byggplaneraren');
+linkTool($<HTMLAnchorElement>('#link-bilder'), 'bildbiblioteket');
 
 // ---- Håll siffrorna aktuella när något ändras i de andra verktygen ----
 const watched = new Set<string>([...Object.values(KEYS)]);

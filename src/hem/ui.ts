@@ -31,6 +31,8 @@ export class HemUI {
   private aiAbort: AbortController | null = null;
   private aiText = '';
   private aiBusy = false;
+  /** Bilder i Bildbiblioteket per album (laddas när de behövs) */
+  private album = new Map<string, { id: string; name: string; url: string }[] | 'loading'>();
 
   constructor(
     private store: HomeStore,
@@ -54,11 +56,56 @@ export class HemUI {
   /** Läs om det som finns i de andra verktygen (t.ex. när man kommer tillbaka till fliken). */
   refresh() {
     this.lib = readLibrary();
+    this.clearAlbums();
     this.render();
   }
 
   get p() {
     return this.store.current;
+  }
+
+  private clearAlbums() {
+    for (const v of this.album.values()) if (v !== 'loading') v.forEach((b) => URL.revokeObjectURL(b.url));
+    this.album.clear();
+  }
+
+  /** Bilderna i projektets album i Bildbiblioteket (samma webbläsare). Laddas i bakgrunden. */
+  private albumImages(name: string) {
+    const cached = this.album.get(name);
+    if (cached) return cached === 'loading' ? null : cached;
+    this.album.set(name, 'loading');
+    import('../bilder/db')
+      .then((db) => db.allImages())
+      .then((all) => {
+        const list = all
+          .filter((b) => b.album === name)
+          .sort((a, b) => b.created - a.created)
+          .map((b) => ({ id: b.id, name: b.name, url: URL.createObjectURL(b.thumb || b.blob) }));
+        this.album.set(name, list);
+        this.render();
+      })
+      .catch(() => this.album.set(name, []));
+    return null;
+  }
+
+  private albumHTML(p: HomeProject, full: boolean) {
+    const art = inArtifact();
+    const list = art ? [] : this.albumImages(p.name);
+    const withImages = p.ideas.filter((i) => i.image).length;
+    let h = `<section class="box">
+      <h2>Bildbiblioteket – albumet "${esc(p.name)}"</h2>
+      <p class="small muted">I Bildbiblioteket kan du skissa på en bild (t.ex. ett foto av rummet eller en bild från 3D-vyn), kombinera bilder och be AI visa hur det kan bli.</p>`;
+    if (art) h += `<p class="small muted">Här inne i Claude har Bildbiblioteket sin egen lagring. Öppna det och lägg bilderna i ett album som heter "${esc(p.name)}".</p>`;
+    else if (list === null) h += `<p class="small muted">Hämtar bilder …</p>`;
+    else if (list.length)
+      h += `<div class="thumbs">${list
+        .slice(0, full ? 60 : 8)
+        .map((b) => `<button class="thumb" data-act="open-image" data-id="${esc(b.id)}" title="${esc(b.name)}"><img src="${esc(b.url)}" alt="${esc(b.name)}" /></button>`)
+        .join('')}</div>${list.length > (full ? 60 : 8) ? `<p class="small muted">… och ${list.length - (full ? 60 : 8)} till</p>` : ''}`;
+    else h += `<p class="small muted">Inga bilder i albumet ännu.</p>`;
+    h += `<div class="toolbar"><button class="primary" data-act="action" data-action="bilder">Öppna albumet</button>${!art && withImages ? `<button data-act="send-images">Skicka idébilderna dit (${withImages})</button>` : ''}</div>
+    </section>`;
+    return h;
   }
 
   go(tab: Tab) {
@@ -92,7 +139,7 @@ export class HemUI {
     let h = `<section class="hero">
       <div>
         <h1>Mina hemprojekt</h1>
-        <p>Samla mål, idéer, bilder och budget på ett ställe och få en plan steg för steg. Varje steg öppnar rätt verktyg – Planritaren, Tomtplaneraren eller Byggplaneraren – med rätt ritning eller kalkyl.</p>
+        <p>Samla mål, idéer, bilder och budget på ett ställe och få en plan steg för steg. Varje steg öppnar rätt verktyg – Planritaren, Tomtplaneraren, Byggplaneraren eller Bildbiblioteket – med rätt ritning, kalkyl eller bild.</p>
       </div>
       <button class="primary big" data-act="new">+ Nytt hemprojekt</button>
     </section>`;
@@ -112,7 +159,7 @@ export class HemUI {
       ${toolBox('planritaren', 'Planritaren', 'Planritningar, inredning och 3D', `${lib.plans.size} ritningar`)}
       ${toolBox('tomtplaneraren', 'Tomtplaneraren', 'Tomt, hus och trädgård i 3D', `${lib.sites.size} tomter`)}
       ${toolBox('byggplaneraren', 'Byggplaneraren', 'Moment, material, tid och kostnad', `${lib.builds.size} kalkyler`)}
-      <div class="toolbox soon"><b>Bildbiblioteket</b><span>Bilder, skisser och AI-redigering</span><em>Kommer snart</em></div>
+      ${toolBox('bildbiblioteket', 'Bildbiblioteket', 'Bilder, skisser och AI-redigering', 'Ett album per projekt')}
     </div>
     ${inArtifact() ? `<p class="hint">Här inne i Claude har varje verktyg sin egen lagring. Det som ska till ett annat verktyg sparas som fil som du öppnar där. På webbsidan (hhofling.github.io/homes) hänger allt ihop automatiskt.</p>` : ''}`;
     return h;
@@ -390,7 +437,8 @@ export class HemUI {
       </figure>`,
         )
         .join('')}</div>
-    </section>`;
+    </section>
+    ${this.albumHTML(p, true)}`;
     return h;
   }
 
@@ -499,7 +547,7 @@ export class HemUI {
     h += section('Kalkyler (Byggplaneraren)', 'byggplaneraren', p.links.builds, lib.builds, buildSummary, '+ Skapa kalkyl', 'bygg');
     if (k.where === 'room' && !p.links.sites.length)
       h += `<section class="box"><h2>Tomt (Tomtplaneraren)</h2><p class="muted">Behövs oftast inte för ett projekt inomhus.</p><div class="toolbar"><button data-act="action" data-action="tomt" data-force="1">+ Rita tomten ändå</button></div></section>`;
-    h += `<section class="box soon"><h2>Bilder (Bildbiblioteket)</h2><p class="muted">Bildbiblioteket med AI-redigering byggs just nu. När det är klart kopplas bilderna hit. Tills dess sparas bilder under <button class="link" data-act="tab" data-tab="ideas">Idéer och önskemål</button>.</p></section>`;
+    h += this.albumHTML(p, false);
     return h + '</div></div>';
   }
 
@@ -620,6 +668,20 @@ export class HemUI {
       case 'cost-del':
         p.costs = p.costs.filter((c) => c.id !== id);
         return this.store.changed(p);
+      case 'open-image':
+        return this.openPage('bildbiblioteket', { album: p.name, bild: id });
+      case 'send-images': {
+        const images = p.ideas.filter((i) => i.image).map((i, n) => ({ name: (i.text.trim() || `Idé ${n + 1}`).slice(0, 60), src: i.image! }));
+        if (!images.length) return;
+        if (!sendHandoff('bildbiblioteket', { album: p.name, images }, 'hemprojekt')) {
+          this.notify('Bilderna fick inte plats att skickas på en gång. Spara dem och ladda upp dem i Bildbiblioteket.');
+          return;
+        }
+        this.album.delete(p.name);
+        this.openPage('bildbiblioteket', { album: p.name });
+        this.notify(`${images.length} bilder skickas till albumet "${esc(p.name)}" i Bildbiblioteket.`);
+        return;
+      }
       case 'open-tool':
         return this.openExisting(el.dataset.tool as ToolId, id, el.dataset.show);
       case 'unlink': {
@@ -834,8 +896,15 @@ export class HemUI {
     const builds = p.links.builds.filter((id) => lib.builds.has(id));
     switch (action) {
       case 'ideas':
-      case 'bilder':
         return this.go('ideas');
+      case 'bilder':
+        if (inArtifact()) {
+          window.open(ARTIFACT_LINKS.bildbiblioteket, '_blank', 'noopener');
+          this.notify(`Öppna <a href="${ARTIFACT_LINKS.bildbiblioteket}" target="_blank" rel="noopener">Bildbiblioteket</a> och lägg bilderna i albumet "${esc(p.name)}".`, 10000);
+          return;
+        }
+        this.album.delete(p.name);
+        return this.openPage('bildbiblioteket', { album: p.name });
       case 'budget':
         return this.go('budget');
       case 'plan-now':
@@ -906,6 +975,15 @@ export class HemUI {
     this.openTool(tool, params);
   }
 
+  private openPage(tool: 'bildbiblioteket', params: Record<string, string>) {
+    if (inArtifact()) {
+      window.open(ARTIFACT_LINKS[tool], '_blank', 'noopener');
+      return;
+    }
+    const url = `${TOOL_PAGES[tool]}?${new URLSearchParams(params)}`;
+    if (!window.open(url, tool)) this.notify(`Webbläsaren stoppade fönstret. <a href="${url}" target="${tool}">Öppna Bildbiblioteket här</a>.`, 10000);
+  }
+
   private openTool(tool: ToolId, params: Record<string, string>) {
     const q = new URLSearchParams(params).toString();
     const w = window.open(`${TOOL_PAGES[tool]}${q ? `?${q}` : ''}`, tool);
@@ -947,7 +1025,7 @@ function kindCard(k: (typeof KINDS)[number]) {
   return `<button class="kind" data-act="kind" data-kind="${k.id}"><span class="icon">${k.icon}</span><b>${esc(k.label)}</b><span class="small muted">${esc(k.description)}</span></button>`;
 }
 
-function toolBox(tool: ToolId, name: string, text: string, count: string) {
+function toolBox(tool: ToolId | 'bildbiblioteket', name: string, text: string, count: string) {
   const href = inArtifact() ? ARTIFACT_LINKS[tool] : TOOL_PAGES[tool];
   return `<a class="toolbox" href="${href}" target="${inArtifact() ? '_blank' : tool}" rel="noopener"><b>${name} ↗</b><span>${text}</span><em>${count}</em></a>`;
 }
