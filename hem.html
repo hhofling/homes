@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Hemprojekt – samla mål, idéer, bilder och budget för dina hemprojekt och planera dem steg för steg med Planritaren, Tomtplaneraren och Byggplaneraren." />
+    <title>Hemprojekt</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%236b46a3'/%3E%3Cpath d='M7 16 16 8l9 8M10 14v10h12V14' fill='none' stroke='white' stroke-width='2.5' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <header class="topbar">
+      <button id="brand" class="brand" title="Alla hemprojekt">
+        <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><rect width="32" height="32" rx="6" fill="#6b46a3"/><path d="M7 16 16 8l9 8M10 14v10h12V14" fill="none" stroke="white" stroke-width="2.5" stroke-linejoin="round"/></svg>
+        <span>Hemprojekt</span>
+      </button>
+      <button id="btn-new" class="primary">+ Nytt projekt</button>
+      <span class="spacer"></span>
+      <div class="top-actions">
+        <button id="btn-open" title="Öppna en sparad Hemprojekt-fil (.hem.json)">Öppna fil…</button>
+        <button id="btn-save" title="Spara alla hemprojekt med bilder, ritningar och kalkyler som en fil">Spara fil</button>
+        <a id="link-planritaren" class="tool-link plan-link" href="./index.html">Planritaren ↗</a>
+        <a id="link-tomt" class="tool-link tomt-link" href="./tomt.html">Tomt i 3D ↗</a>
+        <a id="link-bygg" class="tool-link bygg-link" href="./byggprojekt.html">Byggplaneraren ↗</a>
+      </div>
+      <input id="file-input" type="file" accept=".json,application/json" hidden />
+    </header>
+    <main id="main" class="main"></main>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/src/hem/main.ts"></script>
+  </body>
+</html>

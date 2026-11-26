@@ -1,13 +1,13 @@
 import '../style.css';
 import './style.css';
-import { SiteStore } from './store';
+import { SiteStore, normalizeSite } from './store';
 import { Editor } from './editor';
 import { setupUI, TOOL_KEYS } from './ui';
 import { drawingSheet, viewImage } from './sheet';
 import { planFromBuilding } from './toplan';
 import { pickables, siteToProject } from './quantities';
 import { normalizePlan } from '../store';
-import { ARTIFACT_LINKS, download, inArtifact, safeFilename, sendHandoff } from '../common';
+import { ARTIFACT_LINKS, download, inArtifact, linkTool, receiveHandoff, safeFilename, sendHandoff, takeParam } from '../common';
 import type { Building } from './types';
 import { EXAMPLE_ID, exampleSite } from '../exempel/hogbovagen333';
 
@@ -311,6 +311,7 @@ for (const [id, tool] of [
   } else a.target = tool;
 }
 
+linkTool($<HTMLAnchorElement>('#link-hem'), 'hemprojekt');
 renderTop();
 window.addEventListener('beforeunload', () => store.save());
 
@@ -330,3 +331,14 @@ exampleSelect.addEventListener('change', () => {
 });
 const exampleParam = new URLSearchParams(location.search).get('exempel');
 if (exampleParam) openExample(exampleParam);
+
+// ---- Tomt som skickats hit (t.ex. från Hemprojekt) och ?tomt=… i adressen ----
+receiveHandoff('tomtplaneraren', (raw, from) => {
+  const s = normalizeSite(raw);
+  const existing = store.sites.find((x) => x.id === s.id);
+  if (existing) store.switchTo(existing.id);
+  else store.add(s);
+  notify(`Öppnade "${store.site.name}" från ${from}.`);
+});
+const siteParam = takeParam('tomt');
+if (siteParam && store.sites.some((s) => s.id === siteParam)) store.switchTo(siteParam);

@@ -10,6 +10,7 @@ export default defineConfig({
         planritaren: resolve(__dirname, 'index.html'),
         byggplaneraren: resolve(__dirname, 'byggprojekt.html'),
         tomtplaneraren: resolve(__dirname, 'tomt.html'),
+        hemprojekt: resolve(__dirname, 'hem.html'),
       },
     },
   },

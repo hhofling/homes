@@ -43,6 +43,20 @@ En tredje sida (`tomt.html`) där du ritar tomten och det som ska byggas i 3D:
 
 Tomter sparas i webbläsaren och kan sparas/öppnas som fil (`.tomt.json`).
 
+## Hemprojekt
+
+En fjärde sida (`hem.html`) som håller ihop allt – navet för dina hemprojekt:
+
+- **Nytt hemprojekt** – välj vad du vill göra (badrum, kök, måla, golv, planlösning, inreda, altan, attefallshus, tillbyggnad, trädgård eller eget) och svara på några frågor: mål, var, mått, vem som gör jobbet, budget, när det ska vara klart och önskemål.
+- **Steg för steg** – en plan i faser (idé, mät och rita, kalkyl, lov och offerter, inköp, genomförande, klart). Varje steg har en knapp som öppnar rätt verktyg med rätt innehåll: ritningen i Planritaren (nuläge, förslag, 3D), tomten i Tomtplaneraren eller kalkylen, offerterna, tidsplanen och inköpslistorna i Byggplaneraren. Det som skapas kopplas till projektet automatiskt.
+- **Idéer och önskemål** – "måste" och "vore bra", bilder (dra in, klistra in eller välj), anteckningar och länkar.
+- **Budget** – budget mot kalkylerna från Byggplaneraren och egna poster, med vad som är betalt och vad som är kvar.
+- **Ritningar och kalkyler** – allt som hör till projektet, med Öppna, 3D och Koppla en befintlig.
+- **Fråga Claude** – råd om projektet och förslag på steg (bara när sidan körs som Claude-artefakt).
+- Bra att veta om lov, anmälan och behörigheter för varje typ av projekt.
+
+De andra verktygen kan öppnas med en viss ritning, tomt eller kalkyl via adressen: `index.html?plan=…&visa=3d`, `tomt.html?tomt=…`, `byggprojekt.html?projekt=…&vy=quotes`. Allt sparas i webbläsaren och kan sparas/öppnas som fil (`.hem.json`, med kopplade ritningar, tomter och kalkyler).
+
 ## Exempel
 
 - **Högbovägen 333, Sandviken** – fritidshus vid Lillsjön ritat efter mäklarens planritning i försäljningsannonsen (2023): bottenvåning med uterum och övervåning i Planritaren, samt tomten med huvudbyggnad, gäststuga, gästhus, garage/bod och brygga i Tomtplaneraren. Måtten och placeringen på tomten är uppskattade. Öppna via *Öppna ett exempel…* / *Exempel…*, eller med `?exempel=hogbovagen333` i adressen. Koden finns i `src/exempel/hogbovagen333.ts`.

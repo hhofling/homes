@@ -786,3 +786,7 @@ button.accent {
     max-width: 190px;
   }
 }
+
+.tool-link.hem-link {
+  color: #6b46a3;
+}
