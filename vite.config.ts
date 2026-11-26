@@ -11,6 +11,7 @@ export default defineConfig({
         byggplaneraren: resolve(__dirname, 'byggprojekt.html'),
         tomtplaneraren: resolve(__dirname, 'tomt.html'),
         bildbiblioteket: resolve(__dirname, 'bilder.html'),
+        hemprojekt: resolve(__dirname, 'hem.html'),
       },
     },
   },

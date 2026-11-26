@@ -35,17 +35,36 @@ export const ARTIFACT_LINKS = {
   byggplaneraren: 'https://claude.ai/artifact/AEJ4xDWqUNu9A38hpPRKA7',
   tomtplaneraren: 'https://claude.ai/artifact/MbcjYyQs1HRKN22enBCZuv',
   bildbiblioteket: 'https://claude.ai/artifact/6MDuU8Jv5q2ZpYQutw9YHv',
+  hemprojekt: 'https://claude.ai/artifact/ESoS57WZfTar5Vx9mUiCWJ',
+};
+
+/** Sidan för varje verktyg på webbplatsen. */
+export const TOOL_PAGES = {
+  planritaren: './index.html',
+  byggplaneraren: './byggprojekt.html',
+  tomtplaneraren: './tomt.html',
+  hemprojekt: './hem.html',
+  bildbiblioteket: './bilder.html',
+} as const;
+
+/** Namn som visas när något skickas mellan verktygen. */
+export const TOOL_NAMES: Record<string, string> = {
+  planritaren: 'Planritaren',
+  byggplaneraren: 'Byggplaneraren',
+  tomtplaneraren: 'Tomtplaneraren',
+  hemprojekt: 'Hemprojekt',
+  bildbiblioteket: 'Bildbiblioteket',
 };
 
 // ----- Skicka data mellan verktygen (samma webbläsare) -----
 
-type Tool = 'planritaren' | 'byggplaneraren';
+type Tool = 'planritaren' | 'byggplaneraren' | 'tomtplaneraren' | 'bildbiblioteket';
 const handoffKey = (tool: Tool) => `${tool}.handoff.v1`;
 
 /** Lämna över en plan/ett projekt till ett annat verktyg. Returnerar false om lagringen inte går att använda. */
-export function sendHandoff(tool: Tool, payload: unknown): boolean {
+export function sendHandoff(tool: Tool, payload: unknown, from = 'tomtplaneraren'): boolean {
   try {
-    localStorage.setItem(handoffKey(tool), JSON.stringify({ ts: Date.now(), payload }));
+    localStorage.setItem(handoffKey(tool), JSON.stringify({ ts: Date.now(), payload, from }));
     return true;
   } catch {
     return false;
@@ -56,18 +75,18 @@ export function sendHandoff(tool: Tool, payload: unknown): boolean {
  * Tar emot något som ett annat verktyg lämnat över, både när sidan laddas och om den redan är öppen
  * i en annan flik. Varje överlämning tas emot en gång per flik och bara om den är färsk.
  */
-export function receiveHandoff(tool: Tool, fn: (payload: any) => void) {
+export function receiveHandoff(tool: Tool, fn: (payload: any, from: string) => void) {
   const key = handoffKey(tool);
   const check = () => {
     try {
       const raw = localStorage.getItem(key);
       if (!raw) return;
-      const { ts, payload } = JSON.parse(raw);
+      const { ts, payload, from } = JSON.parse(raw);
       if (typeof ts !== 'number' || Date.now() - ts > 5 * 60 * 1000) return;
       const seen = `${key}.seen`;
       if (sessionStorage.getItem(seen) === String(ts)) return;
       sessionStorage.setItem(seen, String(ts));
-      fn(payload);
+      fn(payload, TOOL_NAMES[from] ?? 'Tomtplaneraren');
     } catch {
       /* ignorera */
     }
@@ -78,12 +97,26 @@ export function receiveHandoff(tool: Tool, fn: (payload: any) => void) {
   });
 }
 
+/** Läser ett värde ur adressraden (t.ex. ?plan=…) och tar bort det så att det inte används igen vid omladdning. */
+export function takeParam(name: string): string | null {
+  const url = new URL(location.href);
+  const v = url.searchParams.get(name);
+  if (v === null) return null;
+  url.searchParams.delete(name);
+  try {
+    history.replaceState(null, '', url.pathname + url.search + url.hash);
+  } catch {
+    /* ignorera */
+  }
+  return v;
+}
+
 /** Adress till ett verktyg: relativ länk på webbplatsen, artefaktadress inuti en artefakt. */
 export function toolUrl(tool: keyof typeof ARTIFACT_LINKS, page: string) {
   return inArtifact() ? ARTIFACT_LINKS[tool] : page;
 }
 
-/** Gör en länk till ett annat verktyg rätt både på webbplatsen och i en Claude-artefakt. */
+/** Gör en länk i verktygsraden rätt: artefaktadress inuti en artefakt (eller dold om den saknas), annars en egen flik per verktyg. */
 export function linkTool(a: HTMLAnchorElement | null, tool: keyof typeof ARTIFACT_LINKS) {
   if (!a) return;
   if (inArtifact()) {

@@ -3,7 +3,7 @@ import { Store } from './store';
 import { Editor } from './editor';
 import { setupUI } from './ui';
 import { downloadJSON, downloadPNG, downloadSVG, planToSVG, inArtifact } from './export';
-import { ARTIFACT_LINKS, linkTool, receiveHandoff } from './common';
+import { ARTIFACT_LINKS, linkTool, receiveHandoff, takeParam } from './common';
 import { normalizePlan } from './store';
 import { EXAMPLE_ID, examplePlans } from './exempel/hogbovagen333';
 import { setupImageImport } from './bildimport';
@@ -76,14 +76,18 @@ if (inArtifact()) {
 linkTool(document.querySelector<HTMLAnchorElement>('#link-bilder'), 'bildbiblioteket');
 
 // Planritning som skickats hit från Tomtplaneraren
-receiveHandoff('planritaren', (raw) => {
+receiveHandoff('planritaren', (raw, from) => {
   const plan = normalizePlan(raw);
   const existing = store.plans.find((p) => p.id === plan.id);
   if (existing) store.switchTo(existing.id);
   else store.addPlan(plan);
   editor.select(null);
   requestAnimationFrame(() => editor.fitView());
-  notify(`Öppnade "${store.plan.name}" från Tomtplaneraren. Ändringar här syns i 3D-vyn.`);
+  notify(
+    from === 'Tomtplaneraren'
+      ? `Öppnade "${store.plan.name}" från Tomtplaneraren. Ändringar här syns i 3D-vyn.`
+      : `Öppnade "${store.plan.name}" från ${from}.`,
+  );
 });
 
 // Exempel: lägg till (eller visa) färdigritade planer
@@ -158,5 +162,16 @@ document.querySelector('#bg-remove')!.addEventListener('click', () => {
   store.changed();
 });
 
+// ----- Öppna en viss plan via adressen (?plan=…&visa=3d), t.ex. från Hemprojekt -----
+const planParam = takeParam('plan');
+const showParam = takeParam('visa');
+if (planParam && store.plans.some((p) => p.id === planParam)) {
+  store.switchTo(planParam);
+  editor.select(null);
+  requestAnimationFrame(() => editor.fitView());
+}
+if (showParam === '3d') void open3D();
+
 // Spara innan sidan stängs
+linkTool(document.querySelector<HTMLAnchorElement>('#link-hem'), 'hemprojekt');
 window.addEventListener('beforeunload', () => store.save());

@@ -3,7 +3,7 @@ import { ProjectStore } from './store';
 import { ProjectUI } from './ui';
 import { reportHTML } from './report';
 import { materialsCSV } from './calc';
-import { ARTIFACT_LINKS, download, inArtifact, linkTool, receiveHandoff, safeFilename } from '../common';
+import { ARTIFACT_LINKS, linkTool, download, inArtifact, receiveHandoff, safeFilename, takeParam } from '../common';
 import { normalizeProject } from './store';
 
 const store = new ProjectStore();
@@ -160,15 +160,23 @@ if (inArtifact()) {
 linkTool(document.querySelector<HTMLAnchorElement>('#link-bilder'), 'bildbiblioteket');
 
 // Inköpsplan som skickats hit från Tomtplaneraren
-receiveHandoff('byggplaneraren', (raw) => {
+receiveHandoff('byggplaneraren', (raw, from) => {
   const p = normalizeProject(raw);
   const existing = store.projects.find((x) => x.id === p.id);
   if (existing) store.switchTo(existing.id);
   else store.add(p);
   ui.go('overview');
-  notify(`Skapade "${store.project.name}" från Tomtplaneraren: ${p.tasks.length} moment och ${p.materials.length} material. Se Material och Inköpslistor.`);
+  notify(`Skapade "${store.project.name}" från ${from}: ${p.tasks.length} moment och ${p.materials.length} material. Se Material och Inköpslistor.`);
 });
+
+// Öppna ett visst projekt och en viss del via adressen (?projekt=…&vy=…), t.ex. från Hemprojekt
+const projParam = takeParam('projekt');
+const viewParam = takeParam('vy');
+if (projParam && store.projects.some((p) => p.id === projParam)) store.switchTo(projParam);
+const VIEWS = ['overview', 'rooms', 'tasks', 'materials', 'schedule', 'quotes', 'shopping', 'checklists'];
+if (viewParam && VIEWS.includes(viewParam)) ui.go(viewParam as any);
 
 renderProjects();
 ui.render();
+linkTool(document.querySelector<HTMLAnchorElement>('#link-hem'), 'hemprojekt');
 window.addEventListener('beforeunload', () => store.save());

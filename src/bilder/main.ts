@@ -1,6 +1,6 @@
 import '../style.css';
 import './style.css';
-import { ARTIFACT_LINKS, download, inArtifact, safeFilename } from '../common';
+import { ARTIFACT_LINKS, download, inArtifact, receiveHandoff, safeFilename, takeParam } from '../common';
 import { addImage, allImages, canvasToBlob, deleteImage, getMeta, loadBitmap, putImage, setMeta, type Bild } from './db';
 import { SketchEditor, TOOLS, type Tool } from './editor';
 import { collageLayout, placeInside, type Item, type Sketch } from './model';
@@ -998,6 +998,7 @@ for (const [id, tool] of [
   ['#link-planritaren', 'planritaren'],
   ['#link-tomt', 'tomtplaneraren'],
   ['#link-bygg', 'byggplaneraren'],
+  ['#link-hem', 'hemprojekt'],
 ] as const) {
   const a = $<HTMLAnchorElement>(id);
   if (inArtifact()) {
@@ -1005,6 +1006,35 @@ for (const [id, tool] of [
     a.target = '_blank';
     a.rel = 'noopener';
   } else a.target = tool;
+}
+
+/**
+ * Bilder som ett annat verktyg skickar hit: { album?: string, images: [{ name, src }] },
+ * där src är en data-URL eller en adress som går att hämta.
+ */
+async function receiveImages(payload: any, fromName: string) {
+  const list: { name?: string; src?: string }[] = Array.isArray(payload?.images) ? payload.images : [];
+  const album = typeof payload?.album === 'string' ? payload.album.trim() : '';
+  if (album && !albums.includes(album)) {
+    albums.push(album);
+    await setMeta('album', albums);
+  }
+  const added: Bild[] = [];
+  for (const it of list) {
+    if (typeof it?.src !== 'string') continue;
+    if (!/^(data:image\/|https:\/\/|\.\/|blob:)/.test(it.src)) continue;
+    try {
+      const blob = await (await fetch(it.src)).blob();
+      added.push(await addImage(blob, { name: String(it.name || 'Bild').slice(0, 120), album, source: 'uppladdad' }));
+    } catch {
+      /* hoppa över bilder som inte går att läsa */
+    }
+  }
+  if (!added.length) return;
+  currentAlbum = album || ALL;
+  selected = new Set(added.map((b) => b.id));
+  await reload();
+  notify(`${added.length === 1 ? 'En bild' : `${added.length} bilder`} kom från ${esc(fromName)}${album ? ` till albumet ${esc(album)}` : ''}.`);
 }
 
 // ---------- Start ----------
@@ -1020,12 +1050,22 @@ window.addEventListener('focus', () => {
     await reload();
     const d = await getMeta('utkast');
     $('#btn-draft').hidden = !d;
-    const params = new URLSearchParams(location.search);
-    const open = params.get('bild');
+    // ?album=<namn> öppnar ett album, ?bild=<id> markerar en bild (används av Hemprojekt)
+    const album = takeParam('album');
+    if (album !== null) {
+      if (album && !albums.includes(album)) {
+        albums.push(album);
+        await setMeta('album', albums);
+      }
+      currentAlbum = album;
+    }
+    const open = takeParam('bild');
     if (open && byId(open)) {
       selected = new Set([open]);
-      renderLibrary();
+      if (currentAlbum !== ALL && byId(open)!.album !== currentAlbum) currentAlbum = ALL;
     }
+    renderLibrary();
+    receiveHandoff('bildbiblioteket', (payload, fromName) => void receiveImages(payload, fromName));
   } catch (err) {
     fail('Bildbiblioteket kunde inte starta')(err);
   }
